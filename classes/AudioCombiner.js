@@ -173,8 +173,7 @@ class AudioCombiner {
 	}
 }
 
-/** TEST CODE */
-
+/* TEST CODE */
 // var ac = new AudioCombiner();
 // ac.addFiles([
 // 	"피아노ver.1.MP3",
