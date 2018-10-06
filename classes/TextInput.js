@@ -134,7 +134,7 @@ class TextInput {
 			this.savedFontSize = size;
 		}
 		
-		size = size * window.getWindowScale();
+		size = size * renko.getWindowScale();
 		size = size * (2 / window.devicePixelRatio);
 		
 		this.style.fontSize = String(size) + "px";

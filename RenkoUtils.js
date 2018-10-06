@@ -1,4 +1,4 @@
-renko = {};
+const renko = {};
 
 // App resolution
 renko.appWidth = 960;
@@ -68,7 +68,7 @@ renko.getMousePos = function() {
  */
 renko.getWindowScale = function() {
 	var realWidth = canvas.width / 2;
-	return realWidth / appWidth;
+	return realWidth / renko.appWidth;
 };
 
 /**
