@@ -1,3 +1,13 @@
+if (typeof webkitAudioContext !== "undefined") {
+	window.AudioContext = window.webkitAudioContext;
+}
+else if (typeof window.mozAudioContext !== "undefined") {
+	window.AudioContext = window.mozAudioContext;
+}
+else {
+	console.log("AudioCombiner - Error: AudioCombiner is not supported in this browser!")
+}
+
 class AudioCombiner {
 
 	constructor() {
