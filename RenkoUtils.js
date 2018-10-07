@@ -19,6 +19,11 @@ renko.variables = {
  * @param {string} viewName 
  */
 renko.showView = function(viewName) {
+	if(renko.views[viewName] === undefined || renko.views[viewName] === null)
+	{
+		console.log("RenkoUtils.showView - The specified view " + viewName + " was not found!");
+		return;
+	}
 	renko.views[viewName].visible = true;
 	
 	if(typeof renko.views[viewName].onEnabled != 'undefined')
