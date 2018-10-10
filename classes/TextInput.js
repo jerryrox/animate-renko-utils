@@ -91,8 +91,8 @@ class TextInput {
 		
 		var scale = renko.getWindowScale() * (2 / window.devicePixelRatio);
 		
-		posX = posX - sizeX/2 + appWidth/2;
-		posY = posY - sizeY/2 + appHeight/2;
+		posX = posX - sizeX/2 + renko.appWidth/2;
+		posY = posY - sizeY/2 + renko.appHeight/2;
 		
 		posX *= scale;
 		posY *= scale;
