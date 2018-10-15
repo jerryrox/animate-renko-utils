@@ -1,0 +1,17 @@
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, minimal-ui" />
+
+body {
+	overflow: hidden;
+	-webkit-user-select: none;
+  	-moz-user-select: none;
+  	-ms-user-select: none;
+  	user-select: none;
+}
+p, input, textarea {
+ 	-webkit-user-select: text;
+ 	-moz-user-select: text;
+ 	-ms-user-select: text;
+ 	user-select: text;
+}
