@@ -128,6 +128,13 @@ renko.isMobileOrTabletDevice = function() {
 };
 
 /**
+ * Returns whether current user agent is a Safari browser.
+ */
+renko.isSafari = function() {
+	return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+}
+
+/**
  * String.format similar to C#
  */
 if (!String.prototype.format) {
