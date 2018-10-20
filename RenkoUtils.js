@@ -15,18 +15,73 @@ renko.variables = {
 };
 
 /**
+ * Registers specified view to renko view manager framework.
+ * @param {Object} view
+ * @param {string} viewName
+ * @param {boolean} visible
+ */
+renko.registerView = function(view, viewName, visible) {
+	// Invalid view or viewname should be ignored.
+	if(renko.isNullOrUndefined(view))
+	{
+		console.log(`RenkoUtils.registerView - Invalid view (${view}) was specified.`);
+		return;
+	}
+	if(renko.isNullOrUndefined(viewName))
+	{
+		console.log(`RenkoUtils.registerView - Invalid viewName (${viewName}) was specified.`);;
+		return;
+	}
+	// If view already exists, it should be ignored.
+	if(!renko.isNullOrUndefined(renko.views[viewName]))
+	{
+		console.log(`RenkoUtils.registerView - Specified view (${viewName}) is already registered!`);
+		return;
+	}
+
+	// Visibility is false by default.
+	if(renko.isNullOrUndefined(visible))
+	{
+		visible = false;
+	}
+
+	renko.views[viewName] = view;
+	view.stop();
+	view.visible = visible;
+}
+
+/**
+ * Invokes a one-time initialization for specified view.
+ * @param {Object} view 
+ * @param {Action} routine 
+ */
+renko.registerAwake = function(view, routine) {
+	var views = renko.variables._registerAwakeViews;
+	if(views === undefined)
+	{
+		views = renko.variables._registerAwakeViews = [];
+	}
+
+	if(!views.includes(view))
+	{
+		views.push(view);
+		routine();
+	}
+}
+
+/**
  * Presenting the view registered in renko.views.
  * @param {string} viewName 
  */
 renko.showView = function(viewName) {
-	if(renko.views[viewName] === undefined || renko.views[viewName] === null)
+	if(renko.isNullOrUndefined(renko.views[viewName]))
 	{
-		console.log("RenkoUtils.showView - The specified view " + viewName + " was not found!");
+		console.log(`RenkoUtils.showView - The specified view (${viewName}) was not found!`);
 		return;
 	}
 	renko.views[viewName].visible = true;
 	
-	if(typeof renko.views[viewName].onEnabled != 'undefined')
+	if(typeof renko.views[viewName].onEnabled === 'function')
 		renko.views[viewName].onEnabled();
 }
 
@@ -34,11 +89,30 @@ renko.showView = function(viewName) {
  * Hiding the view registered in renko.views.
  * @param {string} viewName 
  */
-renko.hideView = function(viewName) {
-	if(viewName instanceof String)
-		renko.views[viewName].visible = false;
+renko.hideView = function(view) {
+	if(renko.isNullOrUndefined(view))
+	{
+		console.log(`RenkoUtils.hideView - Invalid view (${view}) was specified!`);
+		return;
+	}
+
+	if(view instanceof String)
+	{
+		if(renko.isNullOrUndefined(renko.views[view]))
+		{
+			console.log(`RenkoUtils.hideView - View with name (${view}) is not registered!`);
+			return;
+		}
+		renko.views[view].visible = false;
+		if(typeof renko.views[view].onDisabled === 'function')
+			renko.views[view].onDisabled();
+	}
 	else
-		viewName.visible = false;
+	{
+		view.visible = false;
+		if(typeof view.onDisabled === 'function')
+			view.onDisabled();
+	}
 }
 
 /**
@@ -108,6 +182,15 @@ renko.inverseLerp = function(from, to, value) {
 }
 
 /**
+ * Returns whether specified value is null or undefined.
+ * @param {Object} value
+ * @returns {boolean}
+ */
+renko.isNullOrUndefined = function(value) {
+	return value === undefined || value === null;
+}
+
+/**
  * Returns whether current user agent is a mobile device.
  * https://stackoverflow.com/questions/11381673/detecting-a-mobile-browser
  */
@@ -132,6 +215,46 @@ renko.isMobileOrTabletDevice = function() {
  */
 renko.isSafari = function() {
 	return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+}
+
+/**
+ * Attempts to fix video not being rendered on screen on safari browsers.
+ * It was discovered that the video actually plays but it doesn't show
+ * for some reason.
+ * This method fixes it by rapidly changing the top value of the video's css.
+ * Note that video must be of a JQuery object.
+ * @param {Object} video
+ * @param {number} topOffset
+ * @param {boolean} force
+ */
+renko.fixVideo = function(video, topOffset, force) {
+	// If not safari and not being forced, return
+	if(!renko.isSafari() && (renko.isNullOrUndefined(force) || !force))
+	{
+		return;
+	}
+	// If invalid video, return
+	if(renko.isNullOrUndefined(video))
+	{
+		console.log(`RenkoUtils.fixVideo - Invalid video (${video}) was specified.`);
+		return;
+	}
+	// By default, there is no offset.
+	if(renko.isNullOrUndefined(topOffset))
+	{
+		topOffset = 0;
+	}
+
+	for(var i=0; i<350; i++)
+	{
+		const show = (i % 2 === 1);
+		setTimeout(function() {
+			if(show)
+				video.parent().css("top", (topOffset)+"px");
+			else
+				video.parent().css("top", (topOffset+1)+"px");
+		}, 2 * i);
+	}
 }
 
 /**
