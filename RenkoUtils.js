@@ -117,6 +117,7 @@ renko.hideView = function(view) {
 
 /**
  * Creates a 2D array using specified dimensions.
+ * All elements will be null by default.
  * @param {number} row 
  * @param {number} column 
  */
@@ -125,7 +126,7 @@ renko.create2DArray = function(row, column) {
 	for(var i=0; i<row; i++) {
 		array[i] = [];
 		for(var c=0; c<column; c++) {
-			array[i][c] = 0;
+			array[i][c] = null;
 		}
 	}
 	return array;
@@ -162,10 +163,52 @@ renko.saveCanvasAsImage = function(fileName) {
 };
 
 /**
+ * Puts videoElement behind the targetElement.
+ * If targetElement is null or not specified, canvas will be used.
+ * @param {Node} videoElement
+ * @param {Node} targetElement
+ * @param {boolean} shouldPlay
+ */
+renko.reorderVideoBehind = function(videoElement, targetElement, shouldPlay) {
+	// Set default target if not specified.
+	if(renko.isNullOrUndefined(targetElement))
+	{
+		targetElement = canvas;
+	}
+	// Get the div that contains video element
+	var vidHolder = videoElement.parentElement.parentElement;
+	// Reorder elements
+	renko.reorderElement(vidHolder, targetElement);
+
+	// Play video if requested
+	if(shouldPlay === true)
+	{
+		videoElement.play();
+	}
+}
+
+/**
+ * Puts prevElement before nextElement.
+ * Note that two elements must have the same parent.
+ * @param {Node} prevElement
+ * @param {Node} nextElement
+ */
+renko.reorderElement = function(prevElement, nextElement) {
+	// If parent does not match, return.
+	if(prevElement.parentElement !== nextElement.parentElement)
+	{
+		console.log(`RenkoUtils.reorderElement - prevElement's parent (${prevElement.parentElement}) does not match the nextElement's parent (${nextElement.parentElement})!`)
+		return;
+	}
+	prevElement.parentElement.insertBefore(prevElement, nextElement);
+}
+
+/**
  * Returns the interpolated value between from and to using ratio, t.
  * @param {number} from
  * @param {number} to
  * @param {number} t
+ * @returns {number}
  */
 renko.lerp = function(from, to, t) {
 	return (to - from) * t + from;
@@ -175,10 +218,26 @@ renko.lerp = function(from, to, t) {
  * Returns the ratio t between from and to using interpolated value.
  * @param {number} from
  * @param {number} to 
- * @param {number} value 
+ * @param {number} value
+ * @returns {number} 
  */
 renko.inverseLerp = function(from, to, value) {
 	return (value - from) / (to - from);
+}
+
+/**
+ * Returns the clamped value between min and max.
+ * @param {number} min
+ * @param {number} max
+ * @param {number} value
+ * @returns {number}
+ */
+renko.clamp = function(min, max, value) {
+	if(value < min)
+		return min;
+	if(value > max)
+		return max;
+	return value;
 }
 
 /**
@@ -266,5 +325,18 @@ if (!String.prototype.format) {
 		return this.replace(/{(\d+)}/g, function(match, number) { 
 			return typeof args[number] != 'undefined' ? args[number] : match;
 		});
+	};
+}
+/**
+ * Polyfill for Array.includes
+ */
+if (!Array.prototype.includes) {
+	Array.prototype.includes = function(element) {
+		for(var i=0; i<this.length; i++)
+		{
+			if(this[i] === element)
+				return true;
+		}
+		return false;
 	};
 }
