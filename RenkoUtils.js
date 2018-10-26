@@ -277,6 +277,16 @@ renko.isSafari = function() {
 }
 
 /**
+ * Returns whether current user agent is an Internet Explorer browser.
+ */
+renko.isIE = function() {
+	var agent = window.navigator.userAgent;
+	if(renko.isNullOrUndefined(agent))
+		return false;
+	return agent.indexOf("MSIE") > 0 || agent.indexOf("Trident/") > 0;
+}
+
+/**
  * Attempts to fix video not being rendered on screen on safari browsers.
  * It was discovered that the video actually plays but it doesn't show
  * for some reason.
