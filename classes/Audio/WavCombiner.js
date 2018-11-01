@@ -1,3 +1,4 @@
+// Audio context must be supported to use WavCombiner
 if (typeof webkitAudioContext !== "undefined") {
 	window.AudioContext = window.webkitAudioContext;
 }
@@ -5,16 +6,40 @@ else if (typeof window.mozAudioContext !== "undefined") {
 	window.AudioContext = window.mozAudioContext;
 }
 else {
-	console.log("AudioCombiner - Error: AudioCombiner is not supported in this browser!")
+	console.log("WavCombiner - Error: WavCombiner is not supported in this browser!")
 }
 
-class AudioCombiner {
+/**
+ * Class that combines multiple audio files into a single wav file.
+ * 
+ * Create a new instance to use this class.
+ * 
+ * Tested audio types:
+ * - MP3
+ * 
+ * Dependencies:
+ * - external/FetchPolyfill.js
+ * - external/PromisePolyfill.js
+ */
+class WavCombiner {
 
 	constructor() {
 		this.audioContext = new AudioContext();
 		this.reset();
 	}
 
+    /**
+     * Resets the combiner for next time use.
+     */
+	reset() {
+		this.audioDataLoaders = [];
+		this.outputBlob = null;
+	}
+
+    /**
+     * Adds array of audio file paths.
+     * @param {Array<String>} files 
+     */
 	addFiles(files) {
 		for(var i=0; i<files.length; i++) {
 			var req = fetch(files[i])
@@ -25,16 +50,16 @@ class AudioCombiner {
 					return this.audioContext.decodeAudioData(
 						arrBuffer,
 						function(audioBuffer) {
-							console.log("Loaded audio buffers. length: " + audioBuffer.length);
+							console.log("WavCombiner.addFiles - Loaded audio buffers. length: " + audioBuffer.length);
 						},
 						function(e) {
-							console.log("Error while decoding audio data!");
+							console.log("WavCombiner.addFiles - Error while decoding audio data!");
 							console.log(e);
 						}
 					);
 				}.bind(this))
 				.catch(function(e) {
-					console.log("Error while processing!");
+					console.log("WavCombiner.addFiles - Error while processing!");
 					console.log(e);
 				}
 			);
@@ -42,6 +67,10 @@ class AudioCombiner {
 		}
 	}
 
+    /**
+     * Returns the properties of the output audio.
+     * @param {Array<AudioBuffer>} buffers 
+     */
 	getMetadata(buffers) {
 		var numberOfChannels = 9999;
 		var totalLength = 0;
@@ -57,29 +86,42 @@ class AudioCombiner {
 		};
 	}
 
+	/**
+	 * Returns the output blob created from combine process.
+	 */
 	getBlob() {
 		return this.outputBlob;
 	}
 
+	/**
+	 * Returns the url to the output blob.
+	 */
 	getBlobUrl() {
 		return window.URL.createObjectURL(this.outputBlob);
 	}
 
-	download(fileName, blobUrl) {
-		if(blobUrl === undefined || blobUrl === null || blobUrl.length === 0) {
-			blobUrl = this.getBlobUrl();
+	/**
+	 * Requests download for the output audio.
+	 * @param {String} fileName 
+	 */
+	download(fileName) {
+		if(renko.isIE())
+		{
+			window.navigator.msSaveBlob(this.getBlob(), fileName);
 		}
-		var link = document.createElement("a");
-		link.href = blobUrl;
-		link.download = fileName;
-		link.click();
+		else
+		{
+			var link = document.createElement("a");
+			link.href = this.getBlobUrl();
+			link.download = fileName;
+			link.click();
+		}
 	}
 
-	reset() {
-		this.audioDataLoaders = [];
-		this.outputBlob = null;
-	}
-
+	/**
+	 * Combines all audio added from addFiles() function.
+	 * @param {Action<boolean>} callback 
+	 */
 	combineAudio(callback) {
 		Promise.all(this.audioDataLoaders).then(function(buffers) {
 			// Get metadata of all audio buffers
@@ -100,18 +142,25 @@ class AudioCombiner {
 				callback(true);
 			}.bind(this))
 			.catch(function(e) {
-				console.log("Error while rendering audio!");
+				console.log("WavCombiner.combineAudio - Error while rendering audio!");
 				console.log(e);
 				callback(false);
 			});
 		}.bind(this))
 		.catch(function(e) {
-			console.log("Error while appending buffer!");
+			console.log("WavCombiner.combineAudio - Error while appending buffer!");
 			console.log(e);
 			callback(false);
 		});
 	}
 
+	/**
+	 * (Internal)
+	 * Appends the specified audio buffers together.
+	 * @param {AudioContext} context 
+	 * @param {AudioBuffer} buffers 
+	 * @param {*} metadata 
+	 */
 	appendBuffer(context, buffers, metadata) {
 		// Create a temporary AudioContext for holding audio buffers.
 		var tmp = context.createBuffer(metadata.numberOfChannels, metadata.totalLength, metadata.sampleRate);
@@ -126,6 +175,13 @@ class AudioCombiner {
 		return tmp;
 	}
 	
+	/**
+	 * (Internal)
+	 * Converts the audio buffer to wave data.
+	 * @param {AudioBuffer} abuffer 
+	 * @param {number} offset 
+	 * @param {*} len 
+	 */
 	bufferToWave(abuffer, offset, len) {
 		// Couldn't find the source url after closing my tabs.
 		// But thanks a lot for this code
@@ -182,32 +238,3 @@ class AudioCombiner {
 		return new Blob([buffer], {type: "audio/wav"});
 	}
 }
-
-/* TEST CODE */
-// var ac = new AudioCombiner();
-// ac.addFiles([
-// 	"피아노ver.1.MP3",
-// 	"피아노ver.2.MP3",
-// 	"피아노ver.3.MP3",
-// 	"피아노ver.4.MP3",
-// 	"피아노ver.5.MP3",
-// 	"피아노ver.6.MP3",
-// 	"피아노ver.7.MP3",
-// 	"피아노ver.8.MP3",
-// 	"피아노ver.9.MP3",
-// 	"피아노ver.10.MP3",
-// 	"피아노ver.11.MP3",
-// 	"피아노ver.12.MP3",
-// 	"피아노ver.13.MP3",
-// 	"피아노ver.14.MP3",
-// 	"피아노ver.15.MP3",
-// 	"피아노ver.16.MP3",
-// ]);
-// ac.combineAudio(function(isSuccess) {
-// 	if(!isSuccess) {
-// 		return;
-// 	}
-// 	var aud = document.getElementById("myAudio");
-// 	aud.src = ac.getBlobUrl();
-// 	aud.play();
-// });
