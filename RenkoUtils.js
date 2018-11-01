@@ -156,10 +156,17 @@ renko.getWindowScale = function() {
  * @param {string} fileName 
  */
 renko.saveCanvasAsImage = function(fileName) {
-	var link = document.createElement("a");
-	link.href = canvas.toDataURL("image/jpeg");
-	link.download = fileName;
-	link.click();
+	if(renko.isIE())
+	{
+		window.navigator.msSaveBlob(canvas.msToBlob(), fileName);
+	}
+	else
+	{
+		var link = document.createElement("a");
+		link.href = canvas.toDataURL("image/jpeg");
+		link.download = fileName;
+		link.click();
+	}
 };
 
 /**
