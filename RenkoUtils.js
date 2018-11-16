@@ -345,6 +345,22 @@ if (!String.prototype.format) {
 	};
 }
 /**
+ * Polyfill for String.startsWith
+ */
+if(!String.prototype.startsWith) {
+	String.prototype.startsWith = function(value) {
+		if(value === undefined || value === null || this.length < value) {
+			return false;
+		}
+		for(var i=0; i<value.length; i++) {
+			if(this.charAt(i) !== value.charAt(i)) {
+				return false;
+			}
+		}
+		return true;
+	}
+}
+/**
  * Polyfill for Array.includes
  */
 if (!Array.prototype.includes) {
