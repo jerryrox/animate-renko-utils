@@ -1,3 +1,8 @@
+/**
+ * Encapsulates HTML input object to make it controllable via script.
+ * 
+ * Dependencies: MonoUpdate
+ */
 class TextInput {
 	
 	constructor(id, isTextArea) {
@@ -47,10 +52,14 @@ class TextInput {
 		}.bind(this));
 		
 		// Setup resizing interval
-		this.resize();
-		this.resizeInterval = window.setInterval(function() {
-			this.resize();
-		}.bind(this), 1000);
+		this.nextUpdate = 1;
+		this.updateID = renko.monoUpdate.addAction(function(deltaTime) {
+			this.nextUpdate -= deltaTime;
+			if(this.nextUpdate <= 0) {
+				this.nextUpdate = 1;
+				this.resize();
+			}
+		}.bind(this));
 	}
 	
 	resize() {
@@ -170,6 +179,6 @@ class TextInput {
 	
 	dispose() {
 		this.input.parentNode.removeChild(this.input);
-		window.clearInterval(this.resizeInterval);
+		renko.monoUpdate.removeAction(this.updateID);
 	}
 }
