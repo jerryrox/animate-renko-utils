@@ -162,10 +162,17 @@ renko.saveCanvasAsImage = function(fileName) {
 	}
 	else
 	{
-		var link = document.createElement("a");
-		link.href = canvas.toDataURL("image/jpeg");
-		link.download = fileName;
-		link.click();
+		if(renko.isMobileDevice() && renko.isSafari())
+		{
+			window.open(canvas.toDataURL("image/jpeg"));
+		}
+		else
+		{
+			var link = document.createElement("a");
+			link.href = canvas.toDataURL("image/jpeg");
+			link.download = fileName;
+			link.click();
+		}
 	}
 };
 
@@ -208,6 +215,14 @@ renko.reorderElement = function(prevElement, nextElement) {
 		return;
 	}
 	prevElement.parentElement.insertBefore(prevElement, nextElement);
+}
+
+/**
+ * Makes an active element blurred.
+ * For example, call this method to hide keyboard on ios safari.
+ */
+renko.blurActive = function() {
+	document.activeElement.blur();
 }
 
 /**
