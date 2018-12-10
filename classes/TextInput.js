@@ -1,7 +1,8 @@
 /**
  * Encapsulates HTML input object to make it controllable via script.
  * 
- * Dependencies: MonoUpdate
+ * Dependencies:
+ * - ./MonoUpdate.js
  */
 class TextInput {
 	
