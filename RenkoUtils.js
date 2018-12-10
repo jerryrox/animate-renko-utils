@@ -3,6 +3,7 @@ const renko = {};
 // App resolution
 renko.appWidth = 960;
 renko.appHeight = 568;
+renko.appVersion = 0;
 
 // List of views used in ACC app.
 renko.views = {
@@ -13,6 +14,15 @@ renko.views = {
 renko.variables = {
 	
 };
+
+/**
+ * Sets app version to specified value and outputs through console.
+ * @param {number} version 
+ */
+renko.setVersion = function(version) {
+	renko.appVersion = version;
+	console.log("Game version: " + version);
+}
 
 /**
  * Registers specified view to renko view manager framework.
@@ -46,8 +56,8 @@ renko.registerView = function(view, viewName, visible) {
 	}
 
 	renko.views[viewName] = view;
-	view.stop();
 	view.visible = visible;
+	view.stop();
 }
 
 /**
@@ -65,7 +75,7 @@ renko.registerAwake = function(view, routine) {
 	if(!views.includes(view))
 	{
 		views.push(view);
-		routine();
+		routine.bind(view)();
 	}
 }
 
@@ -73,7 +83,7 @@ renko.registerAwake = function(view, routine) {
  * Presenting the view registered in renko.views.
  * @param {string} viewName 
  */
-renko.showView = function(viewName) {
+renko.showView = function(viewName, args) {
 	if(renko.isNullOrUndefined(renko.views[viewName]))
 	{
 		console.log(`RenkoUtils.showView - The specified view (${viewName}) was not found!`);
@@ -82,7 +92,7 @@ renko.showView = function(viewName) {
 	renko.views[viewName].visible = true;
 	
 	if(typeof renko.views[viewName].onEnabled === 'function')
-		renko.views[viewName].onEnabled();
+		renko.views[viewName].onEnabled(args);
 }
 
 /**
@@ -153,6 +163,11 @@ renko.getWindowScale = function() {
 
 /**
  * Downloads current canvas screen as a jpeg file.
+ * 
+ * = WARNING =
+ * This method will be deprecated in future updates.
+ * You should now use the CanvasUtility.js addon which supports cropping.
+ * 
  * @param {string} fileName 
  */
 renko.saveCanvasAsImage = function(fileName) {
@@ -249,12 +264,12 @@ renko.inverseLerp = function(from, to, value) {
 
 /**
  * Returns the clamped value between min and max.
+ * @param {number} value
  * @param {number} min
  * @param {number} max
- * @param {number} value
  * @returns {number}
  */
-renko.clamp = function(min, max, value) {
+renko.clamp = function(value, min, max) {
 	if(value < min)
 		return min;
 	if(value > max)
@@ -387,4 +402,17 @@ if (!Array.prototype.includes) {
 		}
 		return false;
 	};
+}
+/**
+ * Remove method support for Array
+ */
+if(!Array.prototype.remove) {
+	Array.prototype.remove = function(element) {
+		for(var i=0; i<this.length; i++) {
+			if(this[i] === element) {
+				this.splice(i, 1);
+				break;
+			}
+		}
+	}
 }
