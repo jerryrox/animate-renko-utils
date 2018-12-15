@@ -66,6 +66,7 @@ class FateItem {
     // this.endDelay;
     // this.isLoop;
     // this.isPlaying;
+    // this.defaultBind;
 
     getSpeed() { return this.speed; }
     setSpeed(speed) { this.speed = speed; }
@@ -83,7 +84,7 @@ class FateItem {
 
     getProgress() { return (this.duration - this.curTime) / this.duration; }
 
-    constructor() {
+    constructor(defaultBind) {
         this.onReset = null;
         this.sections = [];
         this.speed = 1;
@@ -94,6 +95,7 @@ class FateItem {
         this.endDelay = 0;
         this.isLoop = false;
         this.isPlaying = false;
+        this.defaultBind = defaultBind;
     }
 
     /**
@@ -189,7 +191,7 @@ class FateItem {
      * Creates a new section, adds it, and returns it.
      */
     createSection(startTime, endTime) {
-        return this.addSection(new FateSection(startTime, endTime));
+        return this.addSection(new FateSection(this, startTime, endTime));
     }
 
     /**
@@ -198,8 +200,8 @@ class FateItem {
      * @param {Action<FateSection>} callback 
      */
     createEvent(time, callback) {
-        var section = new FateSection(time, time);
-        section.onStart = callback;
+        var section = new FateSection(this, time, time);
+        section.onStart = this.bindAction(callback);
         return this.addSection(section);
     }
 
@@ -211,6 +213,16 @@ class FateItem {
         this.sections.push(section);
         this.refreshTimeValues();
         return section;
+    }
+
+    /**
+     * Binds the specified action to default bind object (if exists) and returns it.
+     */
+    bindAction(action) {
+        if(renko.isNullOrUndefined(this.defaultBind)) {
+            return action;
+        }
+        return action.bind(this.defaultBind);
     }
 
     /**
@@ -286,6 +298,7 @@ class FateItem {
  */
 class FateSection {
 
+    // this.item;
     // this.onStart;
     // this.onEnd;
     // this.actions;
@@ -302,7 +315,8 @@ class FateSection {
 
     getDelay() { return this.delayedStartTime - this.startTime; }
 
-    constructor(startTime, endTime) {
+    constructor(item, startTime, endTime) {
+        this.item = item;
         this.onStart = null;
         this.onEnd = null;
         this.actions = [];
@@ -358,7 +372,7 @@ class FateSection {
      * @param {Action<number>} action 
      */
     addAction(action) {
-        this.actions.push(action);
+        this.actions.push(this.item.bindAction(action));
     }
 
     /**
