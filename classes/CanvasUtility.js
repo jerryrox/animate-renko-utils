@@ -8,10 +8,15 @@ class CanvasUtility {
     /**
      * Saves the specified canvas element to a JPEG image with full dimensions.
      * @param {object} c 
+     * @param {string} imageType 
+     * @param {string} fileName 
      */
-    saveAsImage(c, fileName) {
+    saveAsImage(c, imageType, fileName) {
         if(renko.isNullOrUndefined(c)) {
             c = canvas;
+        }
+        if(renko.isNullOrUndefined(imageType)) {
+            imageType = "jpeg";
         }
 
         if(renko.isIE())
@@ -22,12 +27,12 @@ class CanvasUtility {
         {
             if(renko.isMobileDevice() && renko.isSafari())
             {
-                window.open(c.toDataURL("image/jpeg"));
+                window.open(c.toDataURL("image/" + imageType));
             }
             else
             {
                 var link = document.createElement("a");
-                link.href = c.toDataURL("image/jpeg");
+                link.href = c.toDataURL("image/" + imageType);
                 link.download = fileName;
                 link.click();
             }
@@ -40,9 +45,10 @@ class CanvasUtility {
      * Rect[2], Rect[3] are the ratios from 0 to 1, indicating the size from starting position.
      * @param {object} c 
      * @param {Array<number>} rect 
+     * @param {string} imageType
      * @param {string} fileName 
      */
-    saveAsImageCrop(c, rect, fileName) {
+    saveAsImageCrop(c, rect, imageType, fileName) {
         if(renko.isNullOrUndefined(c)) {
             c = canvas;
         }
@@ -65,7 +71,7 @@ class CanvasUtility {
         hiddenCanvas.height = rect[3];
         hiddenCanvas.getContext("2d").drawImage(c, rect[0], rect[1], rect[2], rect[3], 0, 0, rect[2], rect[3]);
 
-        this.saveAsImage(hiddenCanvas, fileName);
+        this.saveAsImage(hiddenCanvas, imageType, fileName);
     }
 }
 renko.canvasUtility = new CanvasUtility();
