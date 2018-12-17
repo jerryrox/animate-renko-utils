@@ -287,6 +287,18 @@ renko.isNullOrUndefined = function(value) {
 }
 
 /**
+ * Returns the android version in float value.
+ * If not applicable, a null value is returned.
+ */
+renko.getAndroidVersion = function() {
+	var match = navigator.userAgent.toLowerCase().match(/android\s([0-9\.]*)/);
+	if(match) {
+		return parseFloat(match[1]);
+	}
+	return null;
+}
+
+/**
  * Returns whether current user agent is a mobile device.
  * https://stackoverflow.com/questions/11381673/detecting-a-mobile-browser
  */
@@ -314,6 +326,13 @@ renko.isSafari = function() {
 }
 
 /**
+ * Returns whether current device is an Android device.
+ */
+renko.isAndroid = function() {
+	return /android/i.test(navigator.userAgent.toLowerCase());
+}
+
+/**
  * Returns whether current user agent is an Internet Explorer browser.
  */
 renko.isIE = function() {
@@ -321,6 +340,13 @@ renko.isIE = function() {
 	if(renko.isNullOrUndefined(agent))
 		return false;
 	return agent.indexOf("MSIE") > 0 || agent.indexOf("Trident/") > 0;
+}
+
+/**
+ * Returns whether current user agent is a Samsung Mobile browser.
+ */
+renko.isSamsungBrowser = function() {
+	return /samsungbrowser/i.test(navigator.userAgent.toLowerCase());
 }
 
 /**
