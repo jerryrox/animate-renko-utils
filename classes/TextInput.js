@@ -48,6 +48,18 @@ class TextInput {
 		}.bind(this));
 		// Input input event
 		this.input.addEventListener("input", function (e) {
+			// Apply input character restriction
+			if(!renko.isNullOrUndefined(this.inputRangeChecker)) {
+				var val = this.getValue();
+				var isChanged = false;
+				while(!this.inputRangeChecker(val)) {
+					isChanged = true;
+					val = val.substring(0, val.length - 1);
+				}
+				if(isChanged) {
+					this.setValue(val);
+				}
+			}
 			if(this.onInput !== null && this.onInput !== undefined)
 				this.onInput(e);
 		}.bind(this));
@@ -73,6 +85,15 @@ class TextInput {
 			this.onResize();
 		}
 	};
+
+	setInputRestriction(regexPattern) {
+		this.inputRangeChecker = function(value) {
+			if(renko.isNullOrUndefined(value) || value.length === 0) {
+				return true;
+			}
+			return regexPattern.test(value);
+		};
+	}
 	
 	setOnInput(onInput) {
 		this.onInput = onInput;
@@ -119,8 +140,10 @@ class TextInput {
 	setActive(enabled) {
 		if(enabled)
 			this.input.removeAttribute("disabled");
-		else
+		else {
 			this.input.setAttribute("disabled", "true");
+			this.input.blur();
+		}
 		this.style.visibility = enabled ? "visible" : "hidden";
 	}
 
