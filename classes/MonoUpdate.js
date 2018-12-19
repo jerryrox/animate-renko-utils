@@ -9,12 +9,14 @@ class MonoUpdate {
     // this.updateID;
     // this.nextID;
     // this.actions;
+    // this.timeScale;
 
     constructor() {
         this.prevTimeStamp = 0;
         this.updateID = null;
         this.nextID = 0;
         this.actions = [];
+        this.timeScale = 1;
 
         window.requestAnimationFrame = window.requestAnimationFrame
             || window.mozRequestAnimationFrame
@@ -28,6 +30,17 @@ class MonoUpdate {
 
         this.startUpdate();
     }
+
+    /**
+     * Returns the current global timescale.
+     */
+    getTimescale() { return this.timeScale; }
+
+    /**
+     * Sets the current global timescale.
+     * @param {number} value 
+     */
+    setTimescale(value) { this.timeScale = renko.clamp(value, 0.0000001, value); }
 
     /**
      * Adds specified action to update listener queue.
@@ -81,7 +94,7 @@ class MonoUpdate {
     update(timestamp) {
         if(this.prevTimeStamp > 0)
         {
-            var deltaTime = (timestamp - this.prevTimeStamp) * 0.001;
+            var deltaTime = (timestamp - this.prevTimeStamp) * 0.001 * this.timeScale;
 
             for(var i=this.actions.length-1; i>=0; i--) {
                 this.actions[i].action(deltaTime);
