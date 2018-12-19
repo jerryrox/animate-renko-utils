@@ -19,7 +19,7 @@ class CanvasUtility {
             imageType = "jpeg";
         }
 
-        if(renko.isIE())
+        if(renko.isIE() || renko.isEdge())
         {
             window.navigator.msSaveBlob(c.msToBlob(), fileName);
         }
@@ -32,9 +32,11 @@ class CanvasUtility {
             else
             {
                 var link = document.createElement("a");
+                document.body.appendChild(link);
                 link.href = c.toDataURL("image/" + imageType);
                 link.download = fileName;
                 link.click();
+                document.body.removeChild(link);
             }
         }
     }

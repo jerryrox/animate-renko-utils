@@ -326,6 +326,13 @@ renko.isSafari = function() {
 }
 
 /**
+ * Returns whether current user agent is an Edge browser.
+ */
+renko.isEdge = function() {
+	return /Edge/i.test(navigator.userAgent);
+}
+
+/**
  * Returns whether current device is an Android device.
  */
 renko.isAndroid = function() {
