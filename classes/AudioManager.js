@@ -6,11 +6,51 @@
 class AudioManager {
 	
 	constructor() {
+		this.loadedCount = 0;
+		this.totalCount = 0;
 		this.managedAudio = {};
 		this.loadCallbacks = {};
 		this.isLoadEventHooked = false;
 	}
 	
+	/**
+	 * Sets overall volume.
+	 * @param {number} volume 
+	 */
+	setVolume(volume) { createjs.Sound.volume = volume; }
+
+	/**
+	 * Returns overall volume.
+	 * @returns {number} 
+	 */
+	getVolume() { return createjs.Sound.volume; }
+	
+	/**
+	 * Returns whether volume is not muted.
+	 * @returns {boolean}
+	 */
+	isVolumeEnabled() { return createjs.Sound.volume > 0; }
+
+	/**
+	 * Returns the number of loaded audios.
+	 */
+	getLoadedCount() { return this.loadedCount; }
+
+	/**
+	 * Returns the total number of audios being loaded and already loaded.
+	 */
+	getTotalCount() { return this.totalCount; }
+
+	/**
+	 * Returns the current audio load progress ranging from 0 to 1.
+	 */
+	getLoadProgress() { return this.loadedCount / this.totalCount; }
+
+	/**
+	 * Returns whether all requested.
+	 */
+	isLoadedAll() { return this.loadedCount >= this.totalCount; }
+
 	/**
 	 * Plays the audio with specified id.
 	 * @param {String} audioId 
@@ -26,6 +66,9 @@ class AudioManager {
 	 * @param {Action<String>} callback 
 	 */
 	load(fileName, audioId, callback) {
+		// Increase total number of audios
+		this.totalCount ++;
+
 		// If there is a callback
 		if(!renko.isNullOrUndefined(callback))
 		{
@@ -63,22 +106,6 @@ class AudioManager {
 	}
 	
 	/**
-	 * Sets overall volume.
-	 * @param {number} volume 
-	 */
-	setVolume(volume) {
-		createjs.Sound.volume = volume;
-	}
-
-	/**
-	 * Returns overall volume.
-	 * @returns {number} 
-	 */
-	getVolume() {
-		return createjs.Sound.volume;
-	}
-	
-	/**
 	 * Toggles overall volume to 0 or 1.
 	 */
 	toggleVolume() {
@@ -89,22 +116,12 @@ class AudioManager {
 	}
 	
 	/**
-	 * Returns whether volume is not muted.
-	 * @returns {boolean}
-	 */
-	isVolumeEnabled() {
-		return createjs.Sound.volume > 0;
-	}
-	
-	/**
 	 * (Internal)
 	 * Returns the SoundJS audio clip managed under specified identifier.
 	 * @param {String} identifier 
 	 * @returns {*}
 	 */
-	getManagedAudio(identifier) {
-		return this.managedAudio[identifier];
-	}
+	getManagedAudio(identifier) { return this.managedAudio[identifier]; }
 	
 	/**
 	 * (Internal)
@@ -120,8 +137,12 @@ class AudioManager {
 
 			// Setup load callback
 			createjs.Sound.on("fileload", function (sound) {
-				if(renko.isNullOrUndefined(sound))
+				if(renko.isNullOrUndefined(sound)) {
 					return;
+				}
+				// Increase the number of loaded audios
+				this.loadedCount ++;
+				// Fire custom load event if exists.
 				this.fireLoadEvent(sound.id);
 			}.bind(this));
 		}
