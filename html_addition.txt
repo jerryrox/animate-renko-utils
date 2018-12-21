@@ -15,3 +15,7 @@ p, input, textarea {
  	-ms-user-select: text;
  	user-select: text;
 }
+input:invalid {
+	box-shadow: none;
+	border: none;
+}
