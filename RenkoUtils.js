@@ -162,36 +162,6 @@ renko.getWindowScale = function() {
 };
 
 /**
- * Downloads current canvas screen as a jpeg file.
- * 
- * = WARNING =
- * This method will be deprecated in future updates.
- * You should now use the CanvasUtility.js addon which supports cropping.
- * 
- * @param {string} fileName 
- */
-renko.saveCanvasAsImage = function(fileName) {
-	if(renko.isIE())
-	{
-		window.navigator.msSaveBlob(canvas.msToBlob(), fileName);
-	}
-	else
-	{
-		if(renko.isMobileDevice() && renko.isSafari())
-		{
-			window.open(canvas.toDataURL("image/jpeg"));
-		}
-		else
-		{
-			var link = document.createElement("a");
-			link.href = canvas.toDataURL("image/jpeg");
-			link.download = fileName;
-			link.click();
-		}
-	}
-};
-
-/**
  * Puts videoElement behind the targetElement.
  * If targetElement is null or not specified, canvas will be used.
  * @param {Node} videoElement
