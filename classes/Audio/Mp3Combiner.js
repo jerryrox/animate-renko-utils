@@ -7,6 +7,7 @@
  * Dependencies:
  * - external/FetchPolyfill.js
  * - external/PromisePolyfill.js
+ * - classes/DownloadUtility.js
  */
 class Mp3Combiner {
 
@@ -60,17 +61,7 @@ class Mp3Combiner {
 	 * @param {String} fileName 
 	 */
 	download(fileName) {
-		if(renko.isIE())
-		{
-			window.navigator.msSaveBlob(this.getBlob(), fileName);
-		}
-		else
-		{
-			var link = document.createElement("a");
-			link.href = this.getBlobUrl();
-			link.download = fileName;
-			link.click();
-		}
+		renko.downloadUtility.downloadBlob(this.getBlob(), fileName);
 	}
 
 	/**

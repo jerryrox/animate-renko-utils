@@ -7,6 +7,7 @@ else if (typeof window.mozAudioContext !== "undefined") {
 }
 else {
 	console.log("WavCombiner - Error: WavCombiner is not supported in this browser!")
+	return;
 }
 
 /**
@@ -20,6 +21,7 @@ else {
  * Dependencies:
  * - external/FetchPolyfill.js
  * - external/PromisePolyfill.js
+ * - classes/DownloadUtility.js
  */
 class WavCombiner {
 
@@ -105,17 +107,7 @@ class WavCombiner {
 	 * @param {String} fileName 
 	 */
 	download(fileName) {
-		if(renko.isIE())
-		{
-			window.navigator.msSaveBlob(this.getBlob(), fileName);
-		}
-		else
-		{
-			var link = document.createElement("a");
-			link.href = this.getBlobUrl();
-			link.download = fileName;
-			link.click();
-		}
+		renko.downloadUtility.downloadBlob(this.getBlob(), fileName);
 	}
 
 	/**

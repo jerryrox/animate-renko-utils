@@ -2,6 +2,9 @@
  * Utility class that provides interaction with the canvas.
  * 
  * Addess "renko.canvasUtility" to use this class.
+ * 
+ * Dependencies:
+ * - classes/DownloadUtility.js
  */
 class CanvasUtility {
 
@@ -19,26 +22,7 @@ class CanvasUtility {
             imageType = "jpeg";
         }
 
-        if(renko.isIE() || renko.isEdge())
-        {
-            window.navigator.msSaveBlob(c.msToBlob(), fileName);
-        }
-        else
-        {
-            if(renko.isMobileDevice() && renko.isSafari())
-            {
-                window.open(c.toDataURL("image/" + imageType));
-            }
-            else
-            {
-                var link = document.createElement("a");
-                document.body.appendChild(link);
-                link.href = c.toDataURL("image/" + imageType);
-                link.download = fileName;
-                link.click();
-                document.body.removeChild(link);
-            }
-        }
+        renko.downloadUtility.downloadCanvasImage(c, imageType, fileName);
     }
 
     /**
