@@ -39,12 +39,21 @@ class FateFX {
      * @param {FateItem} item 
      */
     removeItem(item) {
-        this.items.remove(item);
+        for(var i=this.items.length-1; i>=0; i--) {
+            if(this.items[i] === item) {
+                this.items[i] = null;
+                return;
+            }
+        }
     }
 
     update(deltaTime) {
         this.deltaTime = deltaTime;
         for(var i=this.items.length-1; i>=0; i--) {
+            if(renko.isNullOrUndefined(this.items[i])) {
+                this.items.splice(i, 1);
+                continue;
+            }
             this.items[i].update();
         }
     }

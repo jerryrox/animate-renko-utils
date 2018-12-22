@@ -63,7 +63,7 @@ class MonoUpdate {
     removeAction(id) {
         for(var i=0; i<this.actions.length; i++) {
             if(this.actions[i].id === id) {
-                this.actions.splice(i, 1);
+                this.actions[i] = null;
                 return;
             }
         }
@@ -97,6 +97,10 @@ class MonoUpdate {
             var deltaTime = (timestamp - this.prevTimeStamp) * 0.001 * this.timeScale;
 
             for(var i=this.actions.length-1; i>=0; i--) {
+                if(renko.isNullOrUndefined(this.actions[i])) {
+                    this.actions.splice(i, 1);
+                    continue;
+                }
                 this.actions[i].action(deltaTime);
             }
         }
