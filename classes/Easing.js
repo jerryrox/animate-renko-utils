@@ -73,9 +73,9 @@ Easing.SineEaseIn = function(t, start, change, duration) {
 }
 Easing.SineEaseInOut = function(t, start, change, duration) {
     if((t *= 2) < 1) {
-        return change * 0.5 * (Math.sin(Math.PI * t * 0.5)) + start;
+        return Easing.SineEaseIn(t, start, change * 0.5, duration);
     }
-    return -change * 0.5 * (Math.cos(Math.PI * --t * 0.5) - 2) + start;
+    return Easing.SineEaseOut(t - 1, start + change*0.5, change * 0.5, duration);
 }
 Easing.SineEaseOutIn = function(t, start, change, duration) {
     if(t < 0.5) {
