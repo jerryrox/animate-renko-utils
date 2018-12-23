@@ -428,3 +428,27 @@ if(!Array.prototype.remove) {
 		}
 	}
 }
+/**
+ * Utility extension for Array
+ * - Returns a random index within the current array's bounds. If there length is 0, -1 will be returned.
+ */
+if(!Array.prototype.randomIndex) {
+	Array.prototype.randomIndex = function() {
+		if(this.length === 0) {
+			return -1;
+		}
+		return Math.floor(Math.random() * this.length);
+	}
+}
+/**
+ * Utility extension for Array
+ * - Returns a random element within the current array. If there length is 0, null will be returned.
+ */
+if(!Array.prototype.randomElement) {
+	Array.prototype.randomElement = function() {
+		if(this.length === 0) {
+			return null;
+		}
+		return this[Math.floor(Math.random() * this.length)];
+	}
+}
