@@ -452,3 +452,17 @@ if(!Array.prototype.randomElement) {
 		return this[Math.floor(Math.random() * this.length)];
 	}
 }
+/**
+ * Utility extension for Array
+ * - Mixes the array's elements in a random order.
+ */
+if(!Array.prototype.randomize) {
+	Array.prototype.randomize = function() {
+		for(var i=0; i<this.length; i++) {
+			var other = Math.floor(Math.random() * this.length);
+			var temp = this[i];
+			this[i] = this[other];
+			this[other] = temp;
+		}
+	}
+}
