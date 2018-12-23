@@ -52,11 +52,11 @@ class AudioManager {
 	isLoadedAll() { return this.loadedCount >= this.totalCount; }
 
 	/**
-	 * Plays the audio with specified id.
+	 * Plays the audio with specified id and returns the object reference.
 	 * @param {String} audioId 
 	 */
 	play(audioId) {
-		createjs.Sound.play(audioId);
+		return createjs.Sound.play(audioId);
 	}
 
 	/**
@@ -81,7 +81,7 @@ class AudioManager {
 	}
 	
 	/**
-	 * Plays the audio with specified id.
+	 * Plays the audio with specified id and returns the object reference.
 	 * "identifier" parameter can be specified to stop the audio using stopManaged() function.
 	 * @param {String} audioId 
 	 * @param {boolean} loop 
@@ -90,6 +90,7 @@ class AudioManager {
 	playManaged(audioId, loop, identifier) {
 		var sound = createjs.Sound.play(audioId, {loop: loop ? -1 : 1});
 		this.managedAudio[identifier] = sound;
+		return sound;
 	}
 
 	/**
@@ -116,7 +117,6 @@ class AudioManager {
 	}
 	
 	/**
-	 * (Internal)
 	 * Returns the SoundJS audio clip managed under specified identifier.
 	 * @param {String} identifier 
 	 * @returns {*}
