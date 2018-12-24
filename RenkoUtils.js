@@ -16,6 +16,16 @@ renko.variables = {
 };
 
 /**
+ * Sets app resolution to use in rect calculation for some modules and functions.
+ * @param {number} width
+ * @param {number} height
+ */
+renko.setResolution = function(width, height) {
+	renko.appWidth = width;
+	renko.appHeight = height;
+}
+
+/**
  * Sets app version to specified value and outputs through console.
  * @param {number} version 
  */
