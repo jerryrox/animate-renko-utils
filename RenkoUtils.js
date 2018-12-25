@@ -258,15 +258,6 @@ renko.clamp = function(value, min, max) {
 }
 
 /**
- * Returns a random number between min and max numbers, excluding the max value.
- * @param {number} min
- * @param {number} max
- */
-renko.random = function(min, max) {
-	return Math.random() * (max - min) + min;
-}
-
-/**
  * Returns whether specified value is null or undefined.
  * @param {Object} value
  * @returns {boolean}
