@@ -267,18 +267,6 @@ renko.isNullOrUndefined = function(value) {
 }
 
 /**
- * Returns the android version in float value.
- * If not applicable, a null value is returned.
- */
-renko.getAndroidVersion = function() {
-	var match = navigator.userAgent.toLowerCase().match(/android\s([0-9\.]*)/);
-	if(match) {
-		return parseFloat(match[1]);
-	}
-	return null;
-}
-
-/**
  * Returns whether current user agent is a mobile device.
  * https://stackoverflow.com/questions/11381673/detecting-a-mobile-browser
  */
@@ -306,10 +294,41 @@ renko.isSafari = function() {
 }
 
 /**
+ * Returns whether current user agent is a Chrome browser.
+ */
+renko.isChrome = function() {
+	var nav = window.navigator;
+	// Google Chrome for iOS
+	if(nav.userAgent.match("CriOS")) {
+		return true;
+	}
+	// Google Chrome for other platforms
+	if(!renko.isNullOrUndefined(window.chrome) &&
+		nav.vendor === "Google Inc." &&
+		renko.isNullOrUndefined(window.opr) &&
+		!renko.isEdge() &&
+		!renko.isOpera()) {
+		return true;
+	}
+	return false;
+}
+
+/**
+ * Returns whether current user agent is an Opera browser.
+ */
+renko.isOpera = function() {
+	return navigator.userAgent.match(/Opera|OPR\//) ||
+		!renko.isNullOrUndefined(window.opera) ||
+		!renko.isNullOrUndefined(window.opr)
+}
+
+/**
  * Returns whether current user agent is an Edge browser.
  */
 renko.isEdge = function() {
-	return /Edge/i.test(navigator.userAgent);
+	return navigator.userAgent.indexOf("Edge") > -1 ||
+		navigator.userAgent.indexOf("EdgiOS") > -1 ||
+		navigator.userAgent.indexOf("EdgA") > -1;
 }
 
 /**
@@ -317,6 +336,18 @@ renko.isEdge = function() {
  */
 renko.isAndroid = function() {
 	return /android/i.test(navigator.userAgent.toLowerCase());
+}
+
+/**
+ * Returns the android version in float value.
+ * If not applicable, a null value is returned.
+ */
+renko.getAndroidVersion = function() {
+	var match = navigator.userAgent.toLowerCase().match(/android\s([0-9\.]*)/);
+	if(match) {
+		return parseFloat(match[1]);
+	}
+	return null;
 }
 
 /**
