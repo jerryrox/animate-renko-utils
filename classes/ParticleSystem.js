@@ -1040,7 +1040,9 @@ class ParticleMovement {
     }
 
     /**
-     * 
+     * Sets the function that handles  value tween of particle sprites.
+     * Function can take 1 parameter (velocity[2]).
+     * Function must return the received array after applying change.
      * @param {Function} mover 
      */
     setMoveCustom(mover) {
