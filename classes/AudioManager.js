@@ -124,6 +124,12 @@ class AudioManager {
 	getManagedAudio(identifier) { return this.managedAudio[identifier]; }
 	
 	/**
+	 * Returns whether there is an audio instance with specified identifier being managed.
+	 * @param {String} identifier 
+	 */
+	isPlayingManaged(identifier) { return !renko.isNullOrUndefined(this.getManagedAudio(identifier)); }
+
+	/**
 	 * (Internal)
 	 * Registers the specified callback with the audio id.
 	 * @param {String} audioId 
