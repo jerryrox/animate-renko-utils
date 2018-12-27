@@ -305,12 +305,19 @@ renko.isChrome = function() {
 	// Google Chrome for other platforms
 	if(!renko.isNullOrUndefined(window.chrome) &&
 		nav.vendor === "Google Inc." &&
-		renko.isNullOrUndefined(window.opr) &&
 		!renko.isEdge() &&
 		!renko.isOpera()) {
 		return true;
 	}
 	return false;
+}
+
+/**
+ * Returns whether current user agent is a Firefox browser.
+ */
+renko.isFirefox = function() {
+	return /firefox/i.test(navigator.userAgent) ||
+		/fxios/i.test(navigator.userAgent);
 }
 
 /**
@@ -339,15 +346,10 @@ renko.isAndroid = function() {
 }
 
 /**
- * Returns the android version in float value.
- * If not applicable, a null value is returned.
+ * Returns whether current device is an iOS device.
  */
-renko.getAndroidVersion = function() {
-	var match = navigator.userAgent.toLowerCase().match(/android\s([0-9\.]*)/);
-	if(match) {
-		return parseFloat(match[1]);
-	}
-	return null;
+renko.isiOS = function() {
+	return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 }
 
 /**
@@ -365,6 +367,18 @@ renko.isIE = function() {
  */
 renko.isSamsungBrowser = function() {
 	return /samsungbrowser/i.test(navigator.userAgent.toLowerCase());
+}
+
+/**
+ * Returns the android version in float value.
+ * If not applicable, a null value is returned.
+ */
+renko.getAndroidVersion = function() {
+	var match = navigator.userAgent.toLowerCase().match(/android\s([0-9\.]*)/);
+	if(match) {
+		return parseFloat(match[1]);
+	}
+	return null;
 }
 
 /**
