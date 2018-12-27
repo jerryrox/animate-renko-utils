@@ -492,7 +492,9 @@ class ParticleSettings {
 
     /**
      * (Internal)
-     * Not used for this modifier.
+     * @param {ParticleSprite} particle
+     * @param {number} deltaTime
+     * @param {number} progress
      */
     modifyAction(particle, deltaTime, progress) {}
 }
@@ -810,7 +812,7 @@ class ParticleAlpha {
 
     /**
      * (Internal)
-     * Not used for this modifier.
+     * @param {ParticleSprite} particle 
      */
     modifyCreation(particle) {}
 
@@ -882,7 +884,7 @@ class ParticleScale {
 
     /**
      * (Internal)
-     * Not used for this modifier.
+     * @param {ParticleSprite} particle 
      */
     modifyCreation(particle) {}
 
@@ -1113,7 +1115,7 @@ class ParticleRotation {
 
     /**
      * (Internal)
-     * Not used for this modifier.
+     * @param {ParticleSprite} particle 
      */
     modifyCreation(particle) {
         particle.variables.torque = renko.random.range(this.rotation[0], this.rotation[1]);
