@@ -232,6 +232,8 @@ class ParticleSettings {
     modifyCreation(particle) {
         particle.setRotation(renko.random.range(this.startRotation[0], this.startRotation[1]));
 
+        particle.setPosition(0, 0);
+
         var scale = renko.random.range(this.startScale[0], this.startScale[1]);
         particle.setScale(scale, scale);
         particle.variables.initialScale = scale;
@@ -1009,7 +1011,7 @@ class ParticleSprite {
             positionX: 0,
             positionY: 0,
             rotation: 0,
-            alpha: 0,
+            alpha: 1,
             scaleX: 0,
             scaleY: 0,
 
