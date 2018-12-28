@@ -6,7 +6,6 @@
  * Dependencies:
  * - classes/MonoUpdate.js
  * - classes/Random.js
- * - classes/Optimizer.js
  */
 class ParticleSystem {
 
