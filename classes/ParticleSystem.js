@@ -13,6 +13,7 @@ class ParticleSystem {
     // this.container; == Contains the particle sprites
     // this.instantiator; == Function which returns a new instance of the particle sprite.
     // this.curTime; == Current particle emission time.
+    // this.prevTime; == Previous particle emission time.
     // this.settings; == Base modifier for all general particles.
     // this.emission; == Particle emission modifier.
     // this.modifiers[]; == Array of modifiers which determine how this particle system behaves.
@@ -30,6 +31,7 @@ class ParticleSystem {
         this.container = container;
         this.instantiator = instantiator;
         this.curTime = 0;
+        this.prevTime = 0;
         this.settings = new ParticleSettings(this);
         this.emission = new ParticleEmission(this);
         this.modifiers = [this.settings];
@@ -58,6 +60,7 @@ class ParticleSystem {
     stop() {
         this.isPlaying = false;
         this.curTime = 0;
+        this.prevTime = 0;
     }
 
     /**
@@ -75,9 +78,11 @@ class ParticleSystem {
     update(deltaTime) {
         deltaTime *= this.settings.speed;
 
+        var didCycle = false;
         if(this.isPlaying) {
             this.curTime += deltaTime;
             if(this.curTime >= this.settings.duration) {
+                didCycle = true;
                 if(this.settings.isLoop) {
                     this.curTime -= this.settings.duration;
                 }
@@ -88,15 +93,13 @@ class ParticleSystem {
         }
 
         // Update emission and get newly created particles
-        var newParticles = this.emission.update(deltaTime);
+        var newParticles = this.emission.update(deltaTime, this.prevTime, this.curTime, didCycle);
         // Handle modification of newly created particle sprites.
-        if(newParticles !== null) {
-            for(var i=0; i<newParticles.length; i++) {
-                var particle = newParticles[i];
+        for(var i=0; i<newParticles.length; i++) {
+            var particle = newParticles[i];
 
-                for(var c=0; c<this.modifiers.length; c++) {
-                    this.modifiers[c].modifyCreation(particle);
-                }
+            for(var c=0; c<this.modifiers.length; c++) {
+                this.modifiers[c].modifyCreation(particle);
             }
         }
         // Handle modification of all particle sprites.
@@ -113,264 +116,9 @@ class ParticleSystem {
         }
         // Kill all particles where each one's alive time has reached the end.
         this.emission.killParticles();
-    }
-}
 
-/**
- * (Internal)
- * A class that represents a single element in a particle system.
- */
-class ParticleSprite {
-
-    // this.system; == The particle system that owns this sprite.
-    // this.owner; == The symbol instance to be represented as a particle sprite.
-    // this.isActive; == Whether this particle is alive.
-    // this.isInitialized; == Whether ths sprite has been initialized.
-    // this.maxAliveTime; == Max alive time of this sprite;
-    // this.curAliveTime; == Current alive time of this sprite;
-    // this.variables; == Object that simply holds values used by particle modifiers.
-
-    /**
-     * @param {ParticleSystem} system 
-     * @param {Object} owner 
-     */
-    constructor(system, owner) {
-        this.system = system;
-        this.owner = owner;
-        this.isInitialized = false;
-        this.maxAliveTime = 0;
-        this.curAliveTime = 0;
-        this.variables = {
-            isPositionChanged: true,
-            isRotationChanged: true,
-            isAlphaChanged: true,
-            isScaleChanged: true,
-
-            positionX: 0,
-            positionY: 0,
-            rotation: 0,
-            alpha: 0,
-            scaleX: 0,
-            scaleY: 0,
-
-            initialScale: 0,
-            gravity: 0,
-            velocityX: 0,
-            velocityY: 0,
-            offsetX: 0,
-            offsetY: 0,
-            torque: 0
-        };
-
-        this.overrideFrame0();
-
-        this.fireEvent("onParticleCreated");
-        this.setActive(true);
-    }
-
-    /**
-     * Sets the active state of this sprite.
-     * @param {boolean} isActive 
-     */
-    setActive(isActive) {
-        this.owner.visible = isActive;
-        this.isActive = isActive;
-
-        if(isActive) {
-            this.fireEvent("onParticleEnabled");
-        }
-        else {
-            this.curAliveTime = 0;
-            this.fireEvent("onParticleDisabled");
-        }
-    }
-
-    /**
-     * Sets the max alive tiem of this sprite.
-     * @param {number} time 
-     */
-    setMaxAliveTime(time) { this.maxAliveTime = time; }
-
-    /**
-     * Adds the current alive time of this sprite.
-     * @param {number} time 
-     */
-    addCurAliveTime(time) { this.curAliveTime += time; }
-
-    /**
-     * Sets the symbol's position.
-     * @param {Array<number>} position 
-     */
-    setPosition(x, y) {
-        this.variables.isPositionChanged = true;
-        this.variables.positionX = x;
-        this.variables.positionY = y;
-    }
-
-    /**
-     * Sets the symbol's rotation.
-     * @param {number} rotation 
-     */
-    setRotation(rotation) {
-        this.variables.isRotationChanged = true;
-        this.variables.rotation = rotation;
-    }
-
-    /**
-     * Sets the symbol's alpha color.
-     * @param {number} alpha 
-     */
-    setAlpha(alpha) {
-        this.variables.isAlphaChanged = true;
-        this.variables.alpha = alpha;
-    }
-
-    /**
-     * Sets the symbol's scale.
-     * @param {number} x 
-     * @param {number} y 
-     */
-    setScale(x, y) {
-        this.variables.isScaleChanged = true;
-        this.variables.scaleX = x;
-        this.variables.scaleY = y;
-    }
-
-    /**
-     * Returns whether current alive time is greater than or equal to max alive time.
-     */
-    shouldDie() { return this.curAliveTime >= this.maxAliveTime; }
-
-    /**
-     * Updates the symbol instance's values.
-     */
-    update() {
-        if(this.variables.isPositionChanged) {
-            this.variables.isPositionChanged = false;
-            this.owner.x = this.variables.positionX;
-            this.owner.y = this.variables.positionY;
-        }
-        if(this.variables.isRotationChanged) {
-            this.variables.isRotationChanged = false;
-            this.owner.rotation = this.variables.rotation;
-        }
-        if(this.variables.isAlphaChanged) {
-            this.variables.isAlphaChanged = false;
-            this.owner.alpha = this.variables.alpha;
-        }
-        if(this.variables.isScaleChanged) {
-            this.variables.isScaleChanged = false;
-            this.owner.scaleX = this.variables.scaleX;
-            this.owner.scaleY = this.variables.scaleY;
-        }
-    }
-
-    /**
-     * Overrides frame_0 to prevent the internal engine from calling it after 1 frame.
-     */
-    overrideFrame0() {
-        // Get frame_0 function
-        const originalFrame0 = this.owner.frame_0.bind(this.owner);
-        // If frame 0 is not defined, just return
-        if(renko.isNullOrUndefined(originalFrame0)) {
-            return;
-        }
-
-        // Override the function
-        this.owner.frame_0 = function() {
-            if(this.isInitialized) {
-                // When we reach this point, it means createjs has called it after 1 frame.
-                // We should revert the frame_0 function to its original value.
-                this.owner.frame_0 = originalFrame0;
-                return;
-            }
-            this.isInitialized = true;
-            originalFrame0();
-        }.bind(this);
-
-        // Call the overrided function to initialize it right now.
-        this.owner.frame_0();
-    }
-
-    /**
-     * Fires the specified event to the owner instance.
-     * Valid event names:
-     * - onParticleCreated
-     * - onParticleEnabled
-     * - onParticleDisabled
-     */
-    fireEvent(eventName) {
-        var listener = this.owner[eventName];
-        if(!renko.isNullOrUndefined(listener) && typeof listener === "function") {
-            listener();
-        }
-    }
-}
-
-/**
- * (Internal)
- * Class that manages the recycling and creation of particle sprites.
- */
-class ParticleRecycler {
-
-    // this.system; == The particle system instance which owns this object.
-    // this.objects[]; == Array of reusable objects.
-    // this.totalObjects; == Total number of particles created by this recycler.
-
-    /**
-     * @param {ParticleSystem} system 
-     */
-    constructor(system) {
-        this.objects = [];
-        this.system = system;
-        this.totalObjects = 0;
-    }
-
-    /**
-     * Returns either a new or recycled ParticleSprite to use in the system.
-     * @param {number} aliveTime
-     * @returns {ParticleSprite}
-     */
-    getObject(aliveTime) {
-        // If there are no objects in the stack, we should newly instantiate one.
-        if(this.objects.length === 0) {
-            var obj = this.createObject();
-            obj.setMaxAliveTime(aliveTime);
-            return obj;
-        }
-        // Else, just return the last object in the recycler.
-        else {
-            var obj = this.objects.pop();
-            obj.setActive(true);
-            obj.setMaxAliveTime(aliveTime);
-            return obj;
-        }
-    }
-
-    /**
-     * Deactivates the specified sprite and stores it for later use.
-     * @param {ParticleSprite} obj 
-     */
-    returnObject(obj) {
-        obj.setActive(false);
-        this.objects.push(obj);
-    }
-
-    /**
-     * Creates and returns a new instance of ParticleSprite.
-     * @returns {ParticleSprite}
-     */
-    createObject() {
-        // Instantiate the symbol instance
-        var newObj = this.system.instantiator();
-        newObj.name = "particleSprite"+this.totalObjects;
-        this.system.container.addChild(newObj);
-
-        // Increase the total object count.
-        this.totalObjects ++;
-
-        // Return the new object as ParticleSprite.
-        return new ParticleSprite(this.system, newObj);
+        // Store previous time.
+        this.prevTime = this.curTime;
     }
 }
 
@@ -417,7 +165,7 @@ class ParticleSettings {
      * Sets the duration of emission. Ignored if isLoop flag is true.
      * @param {number} duration 
      */
-    setDuration(duration) { this.duration = renko.clamp(duration, 0.0000001, duration); }
+    setDuration(duration) { this.duration = renko.clamp(duration, 0.01, duration); }
 
     /**
      * Sets whether the particle emission should be looping.
@@ -510,7 +258,10 @@ class ParticleEmission {
     // this.emissionRate; == Rate of particle emission.
     // this.emissionRateTime; == Rate of particle emission in relation to time.
     // this.curEmitThreshold; == Current emission threshold.
+    // this.curBurstIndex; == Current burst info iteration index.
     // this.activeParticles[]; == Array of ParticleSprite objects currently active.
+    // this.bursts[]; == Array of burst emissions registered.
+    // this.newParticles[]; == Array of newly created particles on an update.
 
     /**
      * @param {ParticleSystem} system 
@@ -519,9 +270,25 @@ class ParticleEmission {
         this.system = system;
         this.recycler = new ParticleRecycler(system);
         this.curEmitThreshold = 0;
+        this.curBurstIndex = 0;
         this.activeParticles = [];
+        this.bursts = [];
+        this.newParticles = [];
 
         this.setEmissionRate(10);
+    }
+
+    /**
+     * Adds a new burst event with specified options.
+     * @param {number} time 
+     * @param {number} minCount 
+     * @param {number} maxCount 
+     */
+    addBurst(time, minCount, maxCount) {
+        if(arguments.length === 2) {
+            maxCount = minCount;
+        }
+        this.bursts.push(new ParticleBurst(time, minCount, maxCount));
     }
 
     /**
@@ -537,9 +304,13 @@ class ParticleEmission {
      * (Internal)
      * Handles particle creation update.
      * @param {number} deltaTime 
+     * @param {number} prevTime
+     * @param {number} curTime
+     * @param {boolean} didCycle
      */
-    update(deltaTime) {
-        var newParticles = null;
+    update(deltaTime, prevTime, curTime, didCycle) {
+        var newParticles = this.newParticles;
+        newParticles.length = 0;
 
         if(this.system.isPlaying) {
             // Handling constant emission
@@ -552,16 +323,25 @@ class ParticleEmission {
                     this.curEmitThreshold %= this.emissionRateTime;
                     break;
                 }
+                this.spawnParticle(1, newParticles);
+            }
 
-                // Get new particle from recycler and add to active particles list.
-                var particle = this.recycler.getObject(this.system.settings.getRandomAliveTime());
-                this.activeParticles.push(particle);
-
-                // Add to new particles array so their creation can be modified.
-                if(newParticles === null) {
-                    newParticles = [];
+            // Handling burst emission
+            if(this.bursts.length > 0) {
+                var backupTime = curTime;
+                // If the playback time has cycled, we should process the emission two times:
+                // prevTime ~ Duration && 0 ~ curTime
+                if(didCycle) {
+                    curTime = this.system.settings.duration;
                 }
-                newParticles.push(particle);
+                this.processBurst(prevTime, curTime, newParticles);
+                // Emission for the remaining time.
+                if(didCycle) {
+                    this.curBurstIndex = 0;
+                    prevTime = 0;
+                    curTime = backupTime;
+                    this.processBurst(prevTime, curTime, newParticles);
+                }
             }
         }
 
@@ -571,6 +351,51 @@ class ParticleEmission {
         }
 
         return newParticles;
+    }
+
+    /**
+     * (Internal)
+     * Handles the creation routine of burst particles.
+     * @param {number} prevTime 
+     * @param {number} curTime 
+     */
+    processBurst(prevTime, curTime) {
+        var isLimited = false;
+        for(var i=this.curBurstIndex; i<this.bursts.length; i++) {
+            var burst = this.bursts[i];
+
+            // If burst time reached
+            if(burst.time >= prevTime && burst.time < curTime) {
+                this.curBurstIndex = i;
+
+                // Use an extra flag to prevent unnecessary calculations.
+                if(!isLimited) {
+                    // Check first if the particle spawn count is not limited.
+                    var maxSpawnable = this.system.settings.maxParticles - this.activeParticles.length;
+                    if(maxSpawnable > 0) {
+                        var spawnCount = burst.getBurstCount();
+                        if(spawnCount >= maxSpawnable) {
+                            isLimited = true;
+                            spawnCount = maxSpawnable;
+                        }
+                        this.spawnParticle(spawnCount, this.newParticles);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * (Internal)
+     * Spawns particles by specified options.
+     * @param {number} count
+     */
+    spawnParticle(count) {
+        for(var i=0; i<count; i++) {
+            var particle = this.recycler.getObject(this.system.settings.getRandomAliveTime());
+            this.activeParticles.push(particle);
+            this.newParticles.push(particle);
+        }
     }
 
     /**
@@ -1129,6 +954,284 @@ class ParticleRotation {
      */
     modifyAction(particle, deltaTime, progress) {
         particle.setRotation(particle.variables.rotation + particle.variables.torque * deltaTime);
+    }
+}
+
+/**
+ * (Internal)
+ * Class which its objects are managed by ParticleEmission instance for burst emission effect.
+ */
+class ParticleBurst {
+
+    // this.time; == The time at which the burst should occur.
+    // this.range[]; == Range of particles to spawn on burst.
+
+    constructor(time, minCount, maxCount) {
+        this.time = time;
+        this.range = [minCount, maxCount];
+    }
+
+    /**
+     * Returns the number of particles to spawn on calling this method.
+     */
+    getBurstCount() { return renko.random.range(this.range[0], this.range[1]); }
+}
+
+/**
+ * (Internal)
+ * A class that represents a single element in a particle system.
+ */
+class ParticleSprite {
+
+    // this.system; == The particle system that owns this sprite.
+    // this.owner; == The symbol instance to be represented as a particle sprite.
+    // this.isActive; == Whether this particle is alive.
+    // this.isInitialized; == Whether ths sprite has been initialized.
+    // this.maxAliveTime; == Max alive time of this sprite;
+    // this.curAliveTime; == Current alive time of this sprite;
+    // this.variables; == Object that simply holds values used by particle modifiers.
+
+    /**
+     * @param {ParticleSystem} system 
+     * @param {Object} owner 
+     */
+    constructor(system, owner) {
+        this.system = system;
+        this.owner = owner;
+        this.isInitialized = false;
+        this.maxAliveTime = 0;
+        this.curAliveTime = 0;
+        this.variables = {
+            isPositionChanged: true,
+            isRotationChanged: true,
+            isAlphaChanged: true,
+            isScaleChanged: true,
+
+            positionX: 0,
+            positionY: 0,
+            rotation: 0,
+            alpha: 0,
+            scaleX: 0,
+            scaleY: 0,
+
+            initialScale: 0,
+            gravity: 0,
+            velocityX: 0,
+            velocityY: 0,
+            offsetX: 0,
+            offsetY: 0,
+            torque: 0
+        };
+
+        this.overrideFrame0();
+
+        this.fireEvent("onParticleCreated");
+        this.setActive(true);
+    }
+
+    /**
+     * Sets the active state of this sprite.
+     * @param {boolean} isActive 
+     */
+    setActive(isActive) {
+        this.owner.visible = isActive;
+        this.isActive = isActive;
+
+        if(isActive) {
+            this.fireEvent("onParticleEnabled");
+        }
+        else {
+            this.curAliveTime = 0;
+            this.fireEvent("onParticleDisabled");
+        }
+    }
+
+    /**
+     * Sets the max alive tiem of this sprite.
+     * @param {number} time 
+     */
+    setMaxAliveTime(time) { this.maxAliveTime = time; }
+
+    /**
+     * Adds the current alive time of this sprite.
+     * @param {number} time 
+     */
+    addCurAliveTime(time) { this.curAliveTime += time; }
+
+    /**
+     * Sets the symbol's position.
+     * @param {Array<number>} position 
+     */
+    setPosition(x, y) {
+        this.variables.isPositionChanged = true;
+        this.variables.positionX = x;
+        this.variables.positionY = y;
+    }
+
+    /**
+     * Sets the symbol's rotation.
+     * @param {number} rotation 
+     */
+    setRotation(rotation) {
+        this.variables.isRotationChanged = true;
+        this.variables.rotation = rotation;
+    }
+
+    /**
+     * Sets the symbol's alpha color.
+     * @param {number} alpha 
+     */
+    setAlpha(alpha) {
+        this.variables.isAlphaChanged = true;
+        this.variables.alpha = alpha;
+    }
+
+    /**
+     * Sets the symbol's scale.
+     * @param {number} x 
+     * @param {number} y 
+     */
+    setScale(x, y) {
+        this.variables.isScaleChanged = true;
+        this.variables.scaleX = x;
+        this.variables.scaleY = y;
+    }
+
+    /**
+     * Returns whether current alive time is greater than or equal to max alive time.
+     */
+    shouldDie() { return this.curAliveTime >= this.maxAliveTime; }
+
+    /**
+     * Updates the symbol instance's values.
+     */
+    update() {
+        if(this.variables.isPositionChanged) {
+            this.variables.isPositionChanged = false;
+            this.owner.x = this.variables.positionX;
+            this.owner.y = this.variables.positionY;
+        }
+        if(this.variables.isRotationChanged) {
+            this.variables.isRotationChanged = false;
+            this.owner.rotation = this.variables.rotation;
+        }
+        if(this.variables.isAlphaChanged) {
+            this.variables.isAlphaChanged = false;
+            this.owner.alpha = this.variables.alpha;
+        }
+        if(this.variables.isScaleChanged) {
+            this.variables.isScaleChanged = false;
+            this.owner.scaleX = this.variables.scaleX;
+            this.owner.scaleY = this.variables.scaleY;
+        }
+    }
+
+    /**
+     * Overrides frame_0 to prevent the internal engine from calling it after 1 frame.
+     */
+    overrideFrame0() {
+        // Get frame_0 function
+        const originalFrame0 = this.owner.frame_0.bind(this.owner);
+        // If frame 0 is not defined, just return
+        if(renko.isNullOrUndefined(originalFrame0)) {
+            return;
+        }
+
+        // Override the function
+        this.owner.frame_0 = function() {
+            if(this.isInitialized) {
+                // When we reach this point, it means createjs has called it after 1 frame.
+                // We should revert the frame_0 function to its original value.
+                this.owner.frame_0 = originalFrame0;
+                return;
+            }
+            this.isInitialized = true;
+            originalFrame0();
+        }.bind(this);
+
+        // Call the overrided function to initialize it right now.
+        this.owner.frame_0();
+    }
+
+    /**
+     * Fires the specified event to the owner instance.
+     * Valid event names:
+     * - onParticleCreated
+     * - onParticleEnabled
+     * - onParticleDisabled
+     */
+    fireEvent(eventName) {
+        var listener = this.owner[eventName];
+        if(!renko.isNullOrUndefined(listener) && typeof listener === "function") {
+            listener();
+        }
+    }
+}
+
+/**
+ * (Internal)
+ * Class that manages the recycling and creation of particle sprites.
+ */
+class ParticleRecycler {
+
+    // this.system; == The particle system instance which owns this object.
+    // this.objects[]; == Array of reusable objects.
+    // this.totalObjects; == Total number of particles created by this recycler.
+
+    /**
+     * @param {ParticleSystem} system 
+     */
+    constructor(system) {
+        this.objects = [];
+        this.system = system;
+        this.totalObjects = 0;
+    }
+
+    /**
+     * Returns either a new or recycled ParticleSprite to use in the system.
+     * @param {number} aliveTime
+     * @returns {ParticleSprite}
+     */
+    getObject(aliveTime) {
+        // If there are no objects in the stack, we should newly instantiate one.
+        if(this.objects.length === 0) {
+            var obj = this.createObject();
+            obj.setMaxAliveTime(aliveTime);
+            return obj;
+        }
+        // Else, just return the last object in the recycler.
+        else {
+            var obj = this.objects.pop();
+            obj.setActive(true);
+            obj.setMaxAliveTime(aliveTime);
+            return obj;
+        }
+    }
+
+    /**
+     * Deactivates the specified sprite and stores it for later use.
+     * @param {ParticleSprite} obj 
+     */
+    returnObject(obj) {
+        obj.setActive(false);
+        this.objects.push(obj);
+    }
+
+    /**
+     * Creates and returns a new instance of ParticleSprite.
+     * @returns {ParticleSprite}
+     */
+    createObject() {
+        // Instantiate the symbol instance
+        var newObj = this.system.instantiator();
+        newObj.name = "particleSprite"+this.totalObjects;
+        this.system.container.addChild(newObj);
+
+        // Increase the total object count.
+        this.totalObjects ++;
+
+        // Return the new object as ParticleSprite.
+        return new ParticleSprite(this.system, newObj);
     }
 }
 
