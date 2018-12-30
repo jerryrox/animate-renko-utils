@@ -28,6 +28,7 @@ class MonoUpdate {
             || window.mozCancelAnimationFrame
             || function(requestID){clearTimeout(requestID)}
 
+        this.update = this.update.bind(this);
         this.startUpdate();
     }
 
@@ -105,7 +106,7 @@ class MonoUpdate {
             }
         }
         this.prevTimeStamp = timestamp;
-        window.requestAnimationFrame(this.update.bind(this));
+        window.requestAnimationFrame(this.update);
     }
 }
 renko.monoUpdate = new MonoUpdate();
