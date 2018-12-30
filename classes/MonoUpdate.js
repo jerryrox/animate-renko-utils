@@ -78,7 +78,7 @@ class MonoUpdate {
             return;
         }
 
-        this.updateID = window.requestAnimationFrame(this.update.bind(this));
+        this.updateID = window.requestAnimationFrame(this.update);
     }
 
     /**
