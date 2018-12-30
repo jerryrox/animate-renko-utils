@@ -23,7 +23,7 @@ class ParticleSystem {
         if(renko.isNullOrUndefined(container)) {
             throw new Error("ParticleSystem - container must be a valid symbol instance!");
         }
-        if(renko.isNullOrUndefined(instantiator) || typeof instantiator !== "function") {
+        if(typeof instantiator !== "function") {
             throw new Error("ParticleSystem - instantiator must be a valid function!");
         }
 
@@ -208,7 +208,7 @@ class ParticleSettings {
      */
     setRange(min, max, target) {
         min = renko.clamp(min, 0, min);
-        if(renko.isNullOrUndefined(max)) {
+        if(typeof max !== "number") {
             max = min;
         }
         else {
@@ -552,7 +552,7 @@ class ParticleShape {
      * @param {boolean} isRotatable
      */
     setShapeCustom(customShaper, isRotatable) {
-        if(renko.isNullOrUndefined(customShaper) || typeof customShaper !== "function") {
+        if(typeof customShaper !== "function") {
             throw new Error("ParticleShape.setShapeCustom - customShaper must be a valid function!");
         }
         this.curShaper = customShaper;
@@ -625,12 +625,12 @@ class ParticleAlpha {
 
     /**
      * Sets the function that handles alpha value tween of particle sprites.
-     * Function can take 3 parameters (progress, deltaTime, curAlpha).
+     * Function can take 3 parameters ({number} progress, {number} deltaTime, {number} curAlpha).
      * Function must return a number representing the alpha.
      * @param {Function} easeAlpha 
      */
     setEase(easeAlpha) {
-        if(renko.isNullOrUndefined(easeAlpha) || typeof easeAlpha !== "function") {
+        if(typeof easeAlpha !== "function") {
             throw new Error("ParticleAlpha.setEase - easeAlpha must be a valid function!");
         }
         this.easeAlpha = easeAlpha;
@@ -654,6 +654,84 @@ class ParticleAlpha {
 }
 
 /**
+ * Particle modifier which manages the color tint of particle sprites.
+ * Note that this effect comes at a high performance cost.
+ * If possible, use other alternatives such as:
+ * - ParticleAlpha, if you want to modify the alpha channel only; or
+ * - changing symbol frames.
+ */
+class ParticleColor {
+
+    // this.system; == The particle system instance which owns this object.
+    // this.easeColor; == Function which returns the corresponding color values for specified progress.
+    // this.color[]; == Cached array for performance.
+
+    /**
+     * @param {ParticleSystem} system 
+     */
+    constructor(system) {
+        this.system = system;
+        this.color = [1, 1, 1, 1];
+        
+        // White tint by default.
+        this.setEase(() => {
+            this.color[0] = this.color[1] = this.color[2] = this.color[3] = 1;
+        });
+    }
+
+    /**
+     * Sets the function that handles alpha value tween of particle sprites.
+     * Function can take 2 parameters ({Array([0]:R, [1]:G, [2]:B, [3]:A)} color, {number} progress).
+     * Function must return the color array passed as parameter after modifying its elements.
+     * @param {Function} easeColor 
+     */
+    setEase(easeColor) {
+        if(typeof easeColor !== "function") {
+            throw new Error("ParticleColor.setEase - easeColor must be a valid function!");
+        }
+        this.easeColor = easeColor;
+    }
+
+    /**
+     * (Internal)
+     * @param {ParticleSprite} particle 
+     */
+    modifyCreation(particle) {
+        if(particle.variables.colorFilter === null) {
+            var filter = particle.variables.colorFilter = new createjs.ColorFilter(1, 1, 1, 1, 0, 0, 0, 0);
+            var addResult = particle.addFilter(filter);
+            // If failed to add the filter, just nullify it so we don't update this sprite.
+            if(!addResult) {
+                particle.variables.colorFilter = null;
+            }
+        }
+    }
+
+    /**
+     * (Internal)
+     * @param {ParticleSprite} particle
+     * @param {number} deltaTime
+     * @param {number} progress
+     */
+    modifyAction(particle, deltaTime, progress) {
+        var filter = particle.variables.colorFilter;
+        if(filter === null) {
+            return;
+        }
+
+        // Handle ease
+        var color = this.easeColor(this.color, progress);
+
+        // Apply color to filter
+        filter.redMultiplier = color[0];
+        filter.greenMultiplier = color[1];
+        filter.blueMultiplier = color[2];
+        filter.alphaMultiplier = color[3];
+        particle.variables.isFilterChanged = true;
+    }
+}
+
+/**
  * Particle modifier which manages the scaling of particle sprites.
  */
 class ParticleScale {
@@ -671,12 +749,12 @@ class ParticleScale {
 
     /**
      * Sets the function that handles scale X value tween of particle sprites.
-     * Function can take 3 parameters (progress, deltaTime, curScaleX).
+     * Function can take 3 parameters ({number} progress, {number} deltaTime, {number} curScaleX).
      * Function must return a number representing the scaleX.
      * @param {Function} easeScaleX 
      */
     setEaseX(easeScaleX) {
-        if(renko.isNullOrUndefined(easeScaleX) || typeof easeScaleX !== "function") {
+        if(typeof easeScaleX !== "function") {
             throw new Error("ParticleScale.setEaseX - easeScaleX must be a valid function!");
         }
         this.easeScaleX = easeScaleX;
@@ -684,12 +762,12 @@ class ParticleScale {
 
     /**
      * Sets the function that handles scale Y value tween of particle sprites.
-     * Function can take 3 parameters (progress, deltaTime, curScaleY).
+     * Function can take 3 parameters ({number} progress, {number} deltaTime, {number} curScaleY).
      * Function must return a number representing the scaleY.
      * @param {Function} easeScaleY 
      */
     setEaseY(easeScaleY) {
-        if(renko.isNullOrUndefined(easeScaleY) || typeof easeScaleY !== "function") {
+        if(typeof easeScaleY !== "function") {
             throw new Error("ParticleScale.setEaseY - easeScaleY must be a valid function!");
         }
         this.easeScaleY = easeScaleY;
@@ -697,12 +775,12 @@ class ParticleScale {
 
     /**
      * Sets the function that handles scale XY value tween of particle sprites.
-     * Function can take 3 parameters (progress, deltaTime, curScaleX/curScaleY).
+     * Function can take 3 parameters ({number} progress, {number} deltaTime, {number} curScaleXY).
      * Function must return a number representing the scaleX/scaleY.
      * @param {Function} easeScale
      */
     setEaseXY(easeScale) {
-        if(renko.isNullOrUndefined(easeScale) || typeof easeScale !== "function") {
+        if(typeof easeScale !== "function") {
             throw new Error("ParticleScale.setEaseXY - easeScale must be a valid function!");
         }
         this.easeScaleX = this.easeScaleY = easeScale;
@@ -783,7 +861,7 @@ class ParticleMovement {
 
     // this.system; == The particle system instance which owns this object.
     // this.curMover; == Function which determines each particle sprite's velocity.
-    // this.vel; == Cached array for performance.
+    // this.vel[]; == Cached array for performance.
 
     /**
      * @param {ParticleSystem} system 
@@ -868,13 +946,13 @@ class ParticleMovement {
     }
 
     /**
-     * Sets the function that handles  value tween of particle sprites.
-     * Function can take 1 parameter (velocity[2]).
+     * Sets the function that handles value tween of particle sprites.
+     * Function can take 1 parameter ({Array(2)} velocity).
      * Function must return the received array after applying change.
      * @param {Function} mover 
      */
     setMoveCustom(mover) {
-        if(renko.isNullOrUndefined(mover) || typeof mover !== "function") {
+        if(typeof mover !== "function") {
             throw new Error("ParticleMovement.setMoveCustom - mover must be a valid function.");
         }
         this.curMover = mover;
@@ -897,10 +975,74 @@ class ParticleMovement {
      * @param {number} progress
      */
     modifyAction(particle, deltaTime, progress) {
+        var acceleration = particle.variables.acceleration;
         particle.setPosition(
-            particle.variables.positionX + particle.variables.velocityX * deltaTime,
-            particle.variables.positionY + particle.variables.velocityY * deltaTime
+            particle.variables.positionX + particle.variables.velocityX * deltaTime * acceleration,
+            particle.variables.positionY + particle.variables.velocityY * deltaTime * acceleration
         );
+    }
+}
+
+/**
+ * Particle modifier which manages the accleration/deceleration of particle movement.
+ * This modifier requires ParticleMovement to take effect.
+ */
+class ParticleAcceleration {
+
+    // this.system; == The particle system instance which owns this object.
+    // this.curAccelerator; == Function which returns the particles' acceleration scale for movement.
+
+    /**
+     * @param {ParticleSystem} system 
+     */
+    constructor(system) {
+        this.system = system;
+
+        this.setAccelScale(1, 1);
+    }
+
+    /**
+     * Sets the acceleration/deceleration scale to specified value.
+     * @param {number} scale
+     */
+    setAccelScale(scale) {
+        if(typeof scale !== "number") {
+            throw new Error("ParticleAcceleration.setAcceleration - scale must be a valid numeric value!");
+        }
+        this.curAccelerator = function(progress, deltaTime, curScale) {
+            return renko.lerp(curScale, scale, progress);
+        }
+    }
+
+    /**
+     * Sets the function that handles custom acceleration/deceleration scale of particle movement.
+     * Function can take 2 parameters ({number} progress, {number} deltaTime, {number} curScale).
+     * Function must return the received array after applying change.
+     * @param {Function} accelerator
+     */
+    setAccelCustom(accelerator) {
+        if(typeof accelerator !== "function") {
+            throw new Error("ParticleAccelerator.setAccelCustom - accelerator must be a valid function!");
+        }
+        this.curAccelerator = accelerator;
+    }
+
+    /**
+     * (Internal)
+     * @param {ParticleSprite} particle
+     */
+    modifyCreation(particle) {
+        particle.variables.acceleration = 1;
+    }
+
+    /**
+     * (Internal)
+     * @param {ParticleSprite} particle
+     * @param {number} deltaTime
+     * @param {number} progress
+     */
+    modifyAction(particle, deltaTime, progress) {
+        particle.variables.acceleration = this.curAccelerator(progress, deltaTime, particle.variables.acceleration);
     }
 }
 
@@ -1007,6 +1149,7 @@ class ParticleSprite {
             isRotationChanged: true,
             isAlphaChanged: true,
             isScaleChanged: true,
+            isFilterChanged: false,
 
             positionX: 0,
             positionY: 0,
@@ -1019,9 +1162,12 @@ class ParticleSprite {
             gravity: 0,
             velocityX: 0,
             velocityY: 0,
+            acceleration: 1,
             offsetX: 0,
             offsetY: 0,
-            torque: 0
+            torque: 0,
+
+            colorFilter: null
         };
 
         this.overrideFrame0();
@@ -1099,6 +1245,29 @@ class ParticleSprite {
     }
 
     /**
+     * Adds the specified filter to the owner.
+     * Returns whether adding the filter was successful.
+     * @returns {boolean}
+     */
+    addFilter(filter) {
+        var bounds = this.owner.getBounds();
+        if(renko.isNullOrUndefined(bounds)) {
+            console.log("ParticleSprite.addFilter - Couldn't retrieve bound data for following object:");
+            console.log(this.owner);
+            return false;
+        }
+
+        // Create filters array if null and add filter.
+        if(renko.isNullOrUndefined(this.owner.filters)) {
+            this.owner.filters = [];
+        }
+        this.owner.filters.push(filter);
+        // Cache the owner.
+        this.owner.cache(bounds.x, bounds.y, bounds.width, bounds.height);
+        return true;
+    }
+
+    /**
      * Returns whether current alive time is greater than or equal to max alive time.
      */
     shouldDie() { return this.curAliveTime >= this.maxAliveTime; }
@@ -1124,6 +1293,10 @@ class ParticleSprite {
             this.variables.isScaleChanged = false;
             this.owner.scaleX = this.variables.scaleX;
             this.owner.scaleY = this.variables.scaleY;
+        }
+        if(this.variables.isFilterChanged) {
+            this.variables.isFilterChanged = false;
+            this.owner.updateCache();
         }
     }
 
@@ -1163,7 +1336,7 @@ class ParticleSprite {
      */
     fireEvent(eventName) {
         var listener = this.owner[eventName];
-        if(!renko.isNullOrUndefined(listener) && typeof listener === "function") {
+        if(typeof listener === "function") {
             listener();
         }
     }
