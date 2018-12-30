@@ -4,7 +4,7 @@
  * Access "renko.timer" to use this class.
  * 
  * Dependencies:
- * ./MonoUpdate.js
+ * - classes/MonoUpdate.js
  */
 class Timer {
 

@@ -4,7 +4,7 @@
  * Access "renko.fateFX" to use this class.
  * 
  * Dependencies:
- * ./MonoUpdate.js
+ * - classes/MonoUpdate.js
  */
 class FateFX {
     
