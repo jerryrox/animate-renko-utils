@@ -83,7 +83,7 @@ class ParticleSystem {
             if(this.curTime >= this.settings.duration) {
                 didCycle = true;
                 if(this.settings.isLoop) {
-                    this.curTime -= this.settings.duration;
+                    this.curTime %= this.settings.duration;
                 }
                 else {
                     this.stop();
