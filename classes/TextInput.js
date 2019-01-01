@@ -173,8 +173,9 @@ class TextInput {
 		if(enabled)
 			this.input.removeAttribute("disabled");
 		else {
-			this.input.setAttribute("disabled", "true");
+			this.input.focus();
 			this.input.blur();
+			this.input.setAttribute("disabled", "true");
 		}
 		this.style.visibility = enabled ? "visible" : "hidden";
 	}
