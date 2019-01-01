@@ -88,7 +88,7 @@ class AudioManager {
 	 * @param {String} identifier 
 	 */
 	playManaged(audioId, loop, identifier) {
-		var sound = createjs.Sound.play(audioId, {loop: loop ? -1 : 1});
+		var sound = createjs.Sound.play(audioId, {loop: loop ? -1 : 0});
 		this.managedAudio[identifier] = sound;
 		return sound;
 	}
