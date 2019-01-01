@@ -27,7 +27,7 @@ class Timer {
      * Creates a new item that provides a delayed callback after specified duration.
      * @param {number} duration
      * @param {number} repeat
-     * @param {Action<TimerItem>} finishHandler
+     * @param {Function<TimerItem>} finishHandler
      */
     createDelay(duration, repeat, finishHandler) {
         var item = new TimerItem(this.nextId++, duration, repeat, finishHandler);
@@ -37,8 +37,9 @@ class Timer {
 
     /**
      * Creates a new itemthat provides a callback event after a frame.
+     * @param {Function<TimerItem>} finishHandler
      */
-    createFrameDelay() {
+    createFrameDelay(finishHandler) {
         var item = new TimerItem(this.nextId++, 0, 0, finishHandler);
         this.addItem(item);
         return item;
