@@ -1,6 +1,8 @@
 /**
  * Encapsulates HTML input object to make it controllable via script.
  * 
+ * Create a new instance to use this class.
+ * 
  * Dependencies:
  * - ./MonoUpdate.js
  */
