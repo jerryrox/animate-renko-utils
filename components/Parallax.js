@@ -43,7 +43,7 @@ class Parallax {
 
         // Set other default values
         this.setSpeed(1);
-        this.setScale(5, 5);
+        this.setScale(10, 10);
         this.setCenter(target.x, target.y);
         this.setBounds(target.y - 10, target.y + 10, target.x - 10, target.x + 10);
         this.reset();
@@ -90,7 +90,7 @@ class Parallax {
 
     /**
      * Sets the amount of distance to move per half width/height.
-     * By default, x and y are set to 5.
+     * By default, x and y are set to 10.
      * @param {number} x
      * @param {number} y
      */
@@ -146,6 +146,9 @@ class Parallax {
         var targetX = this.screenFactor.x * mousePos.x * this.scale.x + this.center.x;
         var targetY = this.screenFactor.y * mousePos.y * this.scale.y + this.center.y;
 
+        targetX = renko.lerp(this.target.x, targetX, deltaTime * this.speed);
+        targetY = renko.lerp(this.target.y, targetY, deltaTime * this.speed);
+
         // Clamp within bounds
         if(targetY < this.bounds.top) {
             targetY = this.bounds.top;
@@ -161,7 +164,7 @@ class Parallax {
         }
 
         // Apply movement
-        this.target.x = renko.lerp(this.target.x, targetX, deltaTime * this.speed);
-        this.target.y = renko.lerp(this.target.y, targetY, deltaTime * this.speed);
+        this.target.x = targetX;
+        this.target.y = targetY;
     }
 }
