@@ -198,9 +198,16 @@ class FateItem {
 
     /**
      * Creates a new section, adds it, and returns it.
+     * @param {number} startTime
+     * @param {number} endTime
+     * @param {Function} defaultAction
      */
-    createSection(startTime, endTime) {
-        return this.addSection(new FateSection(this, startTime, endTime));
+    createSection(startTime, endTime, defaultAction) {
+        var section = this.addSection(new FateSection(this, startTime, endTime));
+        if(typeof defaultAction === "function") {
+            section.addAction(defaultAction);
+        }
+        return section;
     }
 
     /**
