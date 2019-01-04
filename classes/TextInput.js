@@ -19,6 +19,8 @@ class TextInput {
 	// this.savedPosY;
 	// this.savedSizeX;
 	// this.savedSizeY;
+	// this.offsetX;
+	// this.offsetY;
 	// this.savedFontSize;
 	
 	constructor(id, isTextArea) {
@@ -49,6 +51,9 @@ class TextInput {
 		if(isTextArea) {
 			this.style.resize = "vertical";
 		}
+
+		// Set default offset
+		this.setOffset(0, 0);
 		
 		// Input focus event
 		this.input.addEventListener("focus", function () {
@@ -99,6 +104,17 @@ class TextInput {
 				}
 			}
 		}.bind(this));
+	}
+
+	/**
+	 * Sets the amount of position to offset from specified rect.
+	 * @param {number} x
+	 * @param {number} y
+	 */
+	setOffset(x, y) {
+		this.offsetX = x;
+		this.offsetY = y;
+		this.refreshRect();
 	}
 
 	/**
@@ -248,8 +264,8 @@ class TextInput {
 	 * Refreshes the input's rect based on window's current size.
 	 */
 	refreshRect() {
-		var posX = this.savedPosX;
-		var posY = this.savedPosY;
+		var posX = this.savedPosX + this.offsetX;
+		var posY = this.savedPosY + this.offsetY;
 		var sizeX = this.savedSizeX;
 		var sizeY = this.savedSizeY;
 		
