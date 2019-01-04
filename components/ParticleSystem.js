@@ -27,6 +27,8 @@ class ParticleSystem {
             throw new Error("ParticleSystem - instantiator must be a valid function!");
         }
 
+        this.update = this.update.bind(this);
+
         this.container = container;
         this.instantiator = instantiator;
         this.curTime = 0;
@@ -34,8 +36,28 @@ class ParticleSystem {
         this.settings = new ParticleSettings(this);
         this.emission = new ParticleEmission(this);
         this.modifiers = [this.settings];
-        this.updateId = renko.monoUpdate.addAction(this.update.bind(this));
         this.isPlaying = false;
+
+        this.updateId = null;
+        this.setActive(true);
+    }
+
+    /**
+     * Stops or resumes update routine.
+     * @param {boolean} isActive 
+     */
+    setActive(isActive) {
+        if(isActive) {
+            if(this.updateId === null) {
+                this.updateId = renko.monoUpdate.addAction(this.update);
+            }
+        }
+        else {
+            if(this.updateId !== null) {
+                renko.monoUpdate.removeAction(this.updateId);
+                this.updateId = null;
+            }
+        }
     }
 
     /**
@@ -105,7 +127,7 @@ class ParticleSystem {
         var activeParticles = this.emission.activeParticles;
         for(var i=0; i<activeParticles.length; i++) {
             var particle = activeParticles[i];
-            var progress = renko.clamp(particle.curAliveTime, 0, 1);
+            var progress = renko.clamp(particle.curAliveTime / particle.maxAliveTime, 0, 1);
             // Handle modification
             for(var c=0; c<this.modifiers.length; c++) {
                 this.modifiers[c].modifyAction(particle, deltaTime, progress);
@@ -1304,12 +1326,13 @@ class ParticleSprite {
      * Overrides frame_0 to prevent the internal engine from calling it after 1 frame.
      */
     overrideFrame0() {
-        // Get frame_0 function
-        const originalFrame0 = this.owner.frame_0.bind(this.owner);
         // If frame 0 is not defined, just return
-        if(renko.isNullOrUndefined(originalFrame0)) {
+        if(typeof this.owner.frame_0 !== "function") {
             return;
         }
+
+        // Get binded frame_0 function
+        const originalFrame0 = this.owner.frame_0.bind(this.owner);
 
         // Override the function
         this.owner.frame_0 = function() {
@@ -1337,7 +1360,7 @@ class ParticleSprite {
     fireEvent(eventName) {
         var listener = this.owner[eventName];
         if(typeof listener === "function") {
-            listener();
+            listener.bind(this.owner)();
         }
     }
 }
