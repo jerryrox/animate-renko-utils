@@ -63,7 +63,7 @@ class MonoUpdate {
      */
     removeAction(id) {
         for(var i=0; i<this.actions.length; i++) {
-            if(this.actions[i].id === id) {
+            if(!renko.isNullOrUndefined(this.actions[i]) && this.actions[i].id === id) {
                 this.actions[i] = null;
                 return;
             }
