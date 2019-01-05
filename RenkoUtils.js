@@ -476,6 +476,18 @@ if(!Array.prototype.remove) {
 }
 /**
  * Utility extension for Array
+ * - Returns the last element in the array. If none, undefined will be returned.
+ */
+if(!Array.prototype.getLast) {
+	Array.prototype.getLast = function() {
+		if(this.length === 0) {
+			return undefined;
+		}
+		return this[this.length-1];
+	}
+}
+/**
+ * Utility extension for Array
  * - Returns a random index within the current array's bounds. If there length is 0, -1 will be returned.
  */
 if(!Array.prototype.randomIndex) {
