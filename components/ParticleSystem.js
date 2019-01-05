@@ -154,9 +154,11 @@ class ParticleSettings {
     // this.duration; == Max amount of time where particles can be spawned.
     // this.isLoop; == Whether particle system playback should be looping.
     // this.speed; == The speed of particle simulation.
+    // this.isColorSet == Whether start color is set to a non-white color and needs handling.
     // this.aliveTime[]; == Range of alive times of each particle.
     // this.startRotation[]; == Range of random starting rotation.
     // this.startScale[]; == Range of random starting scale.
+    // this.startColor[]; == Range of random starting color.
 
     /**
      * @param {ParticleSystem} system 
@@ -166,6 +168,8 @@ class ParticleSettings {
         this.aliveTime = new Array(2);
         this.startRotation = new Array(2);
         this.startScale = new Array(2);
+        this.startColor = new Array(2);
+        this.isColorSet = false;
 
         this.setMaxParticles(1000);
         this.setDuration(5);
@@ -174,6 +178,7 @@ class ParticleSettings {
         this.setAliveTime(1);
         this.setStartRotation(0);
         this.setStartScale(1);
+        this.setStartColor(null);
     }
 
     /**
@@ -222,6 +227,36 @@ class ParticleSettings {
     setStartScale(min, max) { this.setRange(min, max, this.startScale); }
 
     /**
+     * Sets the particles' starting color to a random value between colorA and colorB.
+     * 
+     * @param {object} colorA 
+     * @param {object} colorB 
+     */
+    setStartColor(colorA, colorB) {
+        if(renko.isNullOrUndefined(colorA)) {
+            colorA = {r:1, g:1, b:1, a:1};
+        }
+        if(renko.isNullOrUndefined(colorB)) {
+            colorB = colorA;
+        }
+        this.startColor[0] = colorA;
+        this.startColor[1] = colorB;
+        // Once set to true, this flag won't be disabled.
+        if(!this.isColorSet) {
+            this.isColorSet = !(
+                colorA.r === 1 &&
+                colorA.g === 1 &&
+                colorA.b === 1 &&
+                colorA.a === 1 &&
+                colorB.r === 1 &&
+                colorB.g === 1 &&
+                colorB.b === 1 &&
+                colorB.a === 1
+            );
+        }
+    }
+
+    /**
      * (Internal)
      * Sets min and max range values to specified target array.
      * @param {number} min 
@@ -259,6 +294,29 @@ class ParticleSettings {
         var scale = renko.random.range(this.startScale[0], this.startScale[1]);
         particle.setScale(scale, scale);
         particle.variables.initialScale = scale;
+
+        if(this.isColorSet) {
+            var colorR = renko.random.range(this.startColor[0].r, this.startColor[1].r);
+            var colorG = renko.random.range(this.startColor[0].g, this.startColor[1].g);
+            var colorB = renko.random.range(this.startColor[0].b, this.startColor[1].b);
+            var colorA = renko.random.range(this.startColor[0].a, this.startColor[1].a);
+
+            if(particle.variables.colorFilter === null) {
+                var filter = particle.variables.colorFilter = new createjs.ColorFilter(colorR, colorG, colorB, colorA, 0, 0, 0, 0);
+                var addResult = particle.addFilter(filter);
+                if(!addResult) {
+                    particle.variables.colorFilter = null;
+                }
+            }
+            else {
+                var filter = particle.variables.colorFilter;
+                filter.redMultiplier = colorR;
+                filter.greenMultiplier = colorG;
+                filter.blueMultiplier = colorB;
+                filter.alphaMultiplier = colorA;
+                particle.variables.isFilterChanged = true;
+            }
+        }
     }
 
     /**
@@ -740,15 +798,16 @@ class ParticleColor {
         if(filter === null) {
             return;
         }
+        var baseColor = particle.variables.color;
 
         // Handle ease
         var color = this.easeColor(this.color, progress);
 
         // Apply color to filter
-        filter.redMultiplier = color[0];
-        filter.greenMultiplier = color[1];
-        filter.blueMultiplier = color[2];
-        filter.alphaMultiplier = color[3];
+        filter.redMultiplier = color[0] * baseColor.r;
+        filter.greenMultiplier = color[1] * baseColor.g;
+        filter.blueMultiplier = color[2] * baseColor.b;
+        filter.alphaMultiplier = color[3] * baseColor.a;
         particle.variables.isFilterChanged = true;
     }
 }
@@ -1020,7 +1079,7 @@ class ParticleAcceleration {
     constructor(system) {
         this.system = system;
 
-        this.setAccelScale(1, 1);
+        this.setAccelScale(1);
     }
 
     /**
@@ -1188,6 +1247,7 @@ class ParticleSprite {
             offsetX: 0,
             offsetY: 0,
             torque: 0,
+            color: {r:1, g:1, b:1, a:1},
 
             colorFilter: null
         };
