@@ -366,7 +366,14 @@ renko.isIE = function() {
  * Returns whether current user agent is a Samsung Mobile browser.
  */
 renko.isSamsungBrowser = function() {
-	return /samsungbrowser/i.test(navigator.userAgent.toLowerCase());
+	return /samsungbrowser/i.test(navigator.userAgent);
+}
+
+/**
+ * Returns whether current user agent is a Kakao talk WebView.
+ */
+renko.isKakaoBrowser = function() {
+	return /kakaotalk/i.test(navigator.userAgent);
 }
 
 /**
