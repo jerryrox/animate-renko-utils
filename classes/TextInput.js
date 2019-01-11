@@ -15,6 +15,7 @@ class TextInput {
 	// this.onInput;
 	// this.onResize;
 	// this.updateID;
+	// this.maxLength;
 	// this.savedPosX;
 	// this.savedPosY;
 	// this.savedSizeX;
@@ -70,18 +71,27 @@ class TextInput {
 
 		// Input input event
 		this.input.addEventListener("input", function (e) {
-			// Apply input character restriction
-			if(!renko.isNullOrUndefined(this.inputRangeChecker)) {
-				var val = this.getValue();
-				var isChanged = false;
-				while(!this.inputRangeChecker(val)) {
-					isChanged = true;
-					val = val.substring(0, val.length - 1);
-				}
-				if(isChanged) {
-					this.setValue(val);
+			var value = this.getValue();
+			var isModified = false;
+			// Apply max limit
+			if(typeof this.maxLength === "number" && this.maxLength > 0) {
+				if(value.length > this.maxLength) {
+					isModified = true;
+					value = value.substring(0, this.maxLength);
 				}
 			}
+			// Apply input character restriction
+			if(!renko.isNullOrUndefined(this.inputRangeChecker)) {
+				while(!this.inputRangeChecker(value)) {
+					isModified = true;
+					value = value.substring(0, value.length - 1);
+				}
+			}
+			// If the value was modified due to some restraints, apply those changes.
+			if(isModified) {
+				this.setValue(value);
+			}
+
 			// Handle event
 			if(!renko.isNullOrUndefined(this.onInput))
 				this.onInput(this);
@@ -213,7 +223,10 @@ class TextInput {
 	 * Sets the max character limit of this input.
 	 * @param {number} length 
 	 */
-	setMaxLength(length) { this.input.setAttribute("maxlength", length); }
+	setMaxLength(length) {
+		this.maxLength = length;
+		this.input.setAttribute("maxlength", length);
+	}
 	
 	/**
 	 * Sets the input placeholder text.
