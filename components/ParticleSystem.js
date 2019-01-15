@@ -92,6 +92,21 @@ class ParticleSystem {
     }
 
     /**
+     * Destroys the particle by deactivating itself and disposing all used objects.
+     */
+    destroy() {
+        this.clear();
+        this.setActive(false);
+        var objects = this.emission.recycler.objects;
+        for(var i=0; i<objects.length; i++) {
+            this.container.removeChild(objects[i]);
+        }
+        this.emission.recycler.objects.length = 0;
+        this.emission.activeParticles.length = 0;
+        this.emission.newParticles.length = 0;
+    }
+
+    /**
      * (Internal)
      * Updates the particle system.
      * @param {number} deltaTime 
@@ -516,6 +531,7 @@ class ParticleShape {
     // this.isRotatable; == Whether current shape pattern should support rotation.
     // this.offsets[]; == Amount of offset X and Y to move the shape by.
     // this.shapePos[]; == Cached array for performance.
+    // this.modeParams[]; == Data array that contains current shape mode details.
 
     /**
      * @param {ParticleSystem} system 
@@ -524,6 +540,7 @@ class ParticleShape {
         this.system = system;
         this.offsets = new Array(2);
         this.shapePos = new Array(2);
+        this.modeParams = new Array(4);
 
         this.setShapeNone();
         this.setOffset(0, 0);
@@ -534,6 +551,8 @@ class ParticleShape {
      * Sets the particle spawn pattern to a single point (no shape).
      */
     setShapeNone() {
+        this.modeParams[0] = 0;
+        
         this.curShaper = function(arr) {
             arr[0] = 0;
             arr[1] = 0;
@@ -548,6 +567,10 @@ class ParticleShape {
      * @param {boolean} isOnEdge 
      */
     setShapeCircle(radius, isOnEdge) {
+        this.modeParams[0] = 1;
+        this.modeParams[1] = radius;
+        this.modeParams[2] = isOnEdge;
+
         if(isOnEdge) {
             this.curShaper = function(arr) {
                 var pos = renko.random.onUnitCircle();
@@ -573,6 +596,10 @@ class ParticleShape {
      * @param {boolean} isVertical 
      */
     setShapeLine(width, isVertical) {
+        this.modeParams[0] = 2;
+        this.modeParams[1] = width;
+        this.modeParams[2] = isVertical;
+
         width /= 2;
 
         if(isVertical) {
@@ -599,6 +626,11 @@ class ParticleShape {
      * @param {boolean} isOnEdge 
      */
     setShapeRectangle(width, height, isOnEdge) {
+        this.modeParams[0] = 3;
+        this.modeParams[1] = width;
+        this.modeParams[2] = height;
+        this.modeParams[3] = isOnEdge;
+
         width /= 2;
         height /= 2;
         if(isOnEdge) {
@@ -943,6 +975,7 @@ class ParticleMovement {
     // this.system; == The particle system instance which owns this object.
     // this.curMover; == Function which determines each particle sprite's velocity.
     // this.vel[]; == Cached array for performance.
+    // this.modeParams[]; == Data array that contains current movement mode details.
 
     /**
      * @param {ParticleSystem} system 
@@ -950,6 +983,8 @@ class ParticleMovement {
     constructor(system) {
         this.system = system;
         this.vel = [0, 0];
+        this.modeParams = new Array(5);
+
         this.setMoveRange(0, 0, 1, 1);
     }
 
@@ -967,6 +1002,12 @@ class ParticleMovement {
             maxX = minX;
             maxY = minY;
         }
+
+        this.modeParams[0] = 0;
+        this.modeParams[1] = minX;
+        this.modeParams[2] = maxX;
+        this.modeParams[3] = minY;
+        this.modeParams[4] = maxY;
 
         this.curMover = function(arr) {
             arr[0] = renko.random.range(minX, maxX);
@@ -987,6 +1028,10 @@ class ParticleMovement {
         else if(arguments.length === 1) {
             maxSpeed = minSpeed;
         }
+
+        this.modeParams[0] = 1;
+        this.modeParams[1] = minSpeed;
+        this.modeParams[2] = maxSpeed;
 
         this.curMover = function(arr) {
             var dir = renko.random.onUnitCircle();
@@ -1009,6 +1054,10 @@ class ParticleMovement {
         else if(arguments.length === 1) {
             maxSpeed = minSpeed;
         }
+
+        this.modeParams[0] = 2;
+        this.modeParams[1] = minSpeed;
+        this.modeParams[2] = maxSpeed;
 
         this.curMover = function(arr, particle) {
             arr[0] = particle.variables.positionX - particle.variables.offsetX;
@@ -1072,6 +1121,7 @@ class ParticleAcceleration {
 
     // this.system; == The particle system instance which owns this object.
     // this.curAccelerator; == Function which returns the particles' acceleration scale for movement.
+    // this.accelScale; == Value passed into setAccelScale.
 
     /**
      * @param {ParticleSystem} system 
@@ -1090,6 +1140,7 @@ class ParticleAcceleration {
         if(typeof scale !== "number") {
             throw new Error("ParticleAcceleration.setAcceleration - scale must be a valid numeric value!");
         }
+        this.accelScale = scale;
         this.curAccelerator = function(progress, deltaTime, curScale) {
             return renko.lerp(curScale, scale, progress);
         }
@@ -1151,10 +1202,7 @@ class ParticleRotation {
      * @param {number} max 
      */
     setRotateSpeed(min, max) {
-        if(arguments.length === 0) {
-            min = max = 0;
-        }
-        else if(arguments.length === 1) {
+        if(arguments.length === 1) {
             max = min;
         }
 
