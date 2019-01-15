@@ -1,3 +1,7 @@
+/**
+ * Renko chan!
+ * https://github.com/jerryrox/animate-renko-utils
+ */
 const renko = {};
 
 // App resolution
@@ -5,7 +9,7 @@ renko.appWidth = 960;
 renko.appHeight = 568;
 renko.appVersion = 0;
 
-// List of views used in ACC app.
+// List of views used in Animate web app.
 renko.views = {
 	
 };
@@ -221,7 +225,7 @@ renko.blurActive = function() {
 }
 
 /**
- * Returns the interpolated value between from and to using ratio, t.
+ * Returns the unclamped interpolated value between from and to using ratio, t.
  * @param {number} from
  * @param {number} to
  * @param {number} t
@@ -232,7 +236,7 @@ renko.lerp = function(from, to, t) {
 }
 
 /**
- * Returns the ratio t between from and to using interpolated value.
+ * Returns the unclamped ratio t between from and to using interpolated value.
  * @param {number} from
  * @param {number} to 
  * @param {number} value
