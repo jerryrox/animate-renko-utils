@@ -30,7 +30,7 @@ class Parallax {
         };
         this.mouseOffset = {};
         this.mousePos = {};
-        this.scale = {};;
+        this.scale = {};
         this.center = {};
         this.bounds = {};
 
@@ -125,11 +125,15 @@ class Parallax {
         this.isActive = isActive;
 
         if(isActive) {
-            this.updateId = renko.monoUpdate.addAction(this.update);
+            if(typeof this.updateId !== "number") {
+                this.updateId = renko.monoUpdate.addAction(this.update);
+            }
         }
         else {
-            renko.monoUpdate.removeAction(this.updateId);
-            this.updateId = null;
+            if(typeof this.updateId === "number") {
+                renko.monoUpdate.removeAction(this.updateId);
+                this.updateId = null;
+            }
         }
     }
 
