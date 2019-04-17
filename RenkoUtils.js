@@ -472,6 +472,21 @@ if (!Array.prototype.includes) {
 		return false;
 	};
 }
+
+/**
+ * Polyfill for Array.reverse
+ */
+if(!Array.prototype.reverse) {
+	Array.prototype.reverse = function() {
+		let loopCount = Math.floor(this.length / 2);
+		for(let i=0; i<loopCount; i++) {
+			var temp = this[i];
+			this[i] = this[this.length-i-1];
+			this[this.length-i-1] = temp;
+		}
+	}
+}
+
 /**
  * Remove method support for Array
  */

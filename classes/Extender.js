@@ -17,6 +17,18 @@ class Extender {
         }
 
         /**
+         * Sets the scale X and Y using given values.
+         * If only one argument provided, it will be set for both axis.
+         */
+        obj.setScale = function(x, y) {
+            if(arguments.length === 1) {
+                x = y = arguments[0];
+            }
+            obj.scaleX = x;
+            obj.scaleY = y;
+        }
+
+        /**
          * Makes the current object block click events from going through.
          * Specify customAction to handle custom actions.
          */
