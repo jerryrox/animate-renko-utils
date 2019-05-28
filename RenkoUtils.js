@@ -221,7 +221,9 @@ renko.reorderElement = function(prevElement, nextElement) {
  * For example, call this method to hide keyboard on ios safari.
  */
 renko.blurActive = function() {
-	document.activeElement.blur();
+	if(!this.isNullOrUndefined(document.activeElement) && typeof(document.activeElement.blur) === "function") {
+		document.activeElement.blur();
+	}
 }
 
 /**
