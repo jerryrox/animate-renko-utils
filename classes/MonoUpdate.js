@@ -1,7 +1,7 @@
 /**
  * Class that provides a frame-based updating using requestAnimationFrame() API.
  * 
- * Access "renko.audioManager" to use this class.
+ * Access "renko.monoUpdate" to use this class.
  */
 class MonoUpdate {
 
